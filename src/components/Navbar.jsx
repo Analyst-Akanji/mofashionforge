@@ -28,12 +28,17 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
         <a
           href="#top"
-          className="font-display text-2xl tracking-wide text-umber"
+          className={`font-display text-2xl tracking-wide transition-colors ${
+            scrolled ? "text-umber" : "text-white"
+          }`}
         >
           Mo<span className="text-terracotta">_</span>FashionForge
         </a>
-
-        <ul className="hidden md:flex items-center gap-9 text-sm tracking-wide text-umber/80">
+        <ul
+          className={`hidden md:flex items-center gap-9 text-sm tracking-wide transition-colors ${
+            scrolled ? "text-umber/80" : "text-white/90"
+          }`}
+        >
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <a
@@ -49,7 +54,9 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-5">
           <button
             aria-label="View cart"
-            className="text-umber hover:text-terracotta transition-colors"
+            className={`transition-colors hover:text-terracotta ${
+              scrolled ? "text-umber" : "text-white"
+            }`}
           >
             <ShoppingBag size={20} />
           </button>
@@ -62,7 +69,9 @@ export default function Navbar() {
         </div>
 
         <button
-          className="md:hidden text-umber"
+          className={`md:hidden transition-colors ${
+            scrolled ? "text-umber" : "text-white"
+          }`}
           aria-label="Toggle menu"
           onClick={() => setOpen((v) => !v)}
         >
