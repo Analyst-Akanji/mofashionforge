@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="grid md:grid-cols-12 gap-8 items-end">
         <div className="md:col-span-7">
           <p className="text-xs tracking-wider2 uppercase text-sage mb-5">
-            Handcrafted, stitch by stitch — Osogbo, Nigeria
+            Handcrafted, stitch by stitch — Nigeria
           </p>
           <h1 className="font-display text-[2.6rem] leading-[1.08] md:text-[4.2rem] md:leading-[1.05] text-umber">
             Crochet, worn
