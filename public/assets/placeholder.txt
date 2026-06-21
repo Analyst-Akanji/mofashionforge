@@ -1,0 +1,4 @@
+Placeholder assets - replace with real Mo_FashionForge photography before launch:
+- hero-yarn.jpg (yarn stack hero image)
+- story-tools.jpg (crochet hooks + yarn basket)
+- product-1.jpg through product-6.jpg (garment photos)

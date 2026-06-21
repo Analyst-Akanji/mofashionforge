@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: #F3EDE4;
+  color: #2E2A22;
+  font-family: "Inter", "General Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: #C97B68;
+  color: #FAF7F2;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #C97B68;
+  outline-offset: 3px;
+}
+
+.stitch-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.stitch-underline svg {
+  position: absolute;
+  left: 0;
+  bottom: -0.12em;
+  width: 100%;
+  height: 0.3em;
+  overflow: visible;
+}
+
+.stitch-underline path {
+  stroke: #C97B68;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: stitch-draw 1.4s 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes stitch-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stitch-underline path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+.picot-edge {
+  position: relative;
+}
+
+.picot-edge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 14px;
+  background-image: radial-gradient(circle at 7px 0, transparent 7px, #FAF7F2 7.5px);
+  background-size: 14px 14px;
+  background-repeat: repeat-x;
+  background-position: center top;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.scroll-snap-row {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+}
+
+.scroll-snap-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll-snap-row::-webkit-scrollbar-thumb {
+  background-color: #A89078;
+  border-radius: 999px;
+}
+
+.scroll-snap-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
