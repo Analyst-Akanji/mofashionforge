@@ -1,61 +1,33 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import useReveal from "../hooks/useReveal";
+
+const WHATSAPP_URL = "https://wa.me/2348185123890";
+const INSTAGRAM_URL = "https://www.instagram.com/mo_fashionforge";
 
 export default function ContactSection() {
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: wire to backend / email service
-    setSent(true);
-  };
-
+  const ref = useReveal();
   return (
-    <section
-      id="contact"
-      className="reveal py-20 px-6 md:px-10 max-w-6xl mx-auto"
-    >
-      <div className="bg-umber rounded-[28px] px-8 md:px-16 py-14 md:py-16 grid md:grid-cols-2 gap-10">
-        <div>
-          <p className="text-xs tracking-wider2 uppercase text-terracotta mb-4">
-            Commission a Piece
-          </p>
-          <h2 className="font-display text-3xl md:text-4xl text-cardwhite leading-snug">
-            Tell us what
-            <br />
-            you have in mind.
-          </h2>
-          <p className="mt-5 text-cardwhite/60 text-sm max-w-xs leading-relaxed">
-            Share your measurements, color preference, and occasion — we'll
-            reply with a quote and timeline within 24 hours.
-          </p>
+    <section ref={ref} style={{ background: "#0F0F0F", padding: "80px 24px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", textAlign: "center" }}>
+        <span className="section-label">Get in Touch</span>
+        <h2 className="reveal" style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2.2rem, 5vw, 3.5rem)", fontWeight: 400, color: "#FAF8F3", margin: "16px auto 24px", maxWidth: "600px", lineHeight: 1.2 }}>
+          Wear art.<br />
+          <em style={{ color: "#B8973A" }}>Embrace confidence.</em>
+        </h2>
+        <p className="reveal" style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "rgba(250,248,243,0.6)", lineHeight: 1.8, maxWidth: "480px", margin: "0 auto 40px" }}>
+          Ready to commission a piece or have questions about an order? Morayo responds within 24 hours.
+        </p>
+        <div className="reveal" style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", background: "#B8973A", color: "#FAF8F3", padding: "14px 28px", textDecoration: "none" }}>
+            WhatsApp Morayo
+          </a>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", border: "1px solid rgba(250,248,243,0.3)", color: "#FAF8F3", padding: "14px 28px", textDecoration: "none" }}>
+            Follow on Instagram
+          </a>
+          <Link to="/contact" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", border: "1px solid rgba(250,248,243,0.3)", color: "#FAF8F3", padding: "14px 28px", textDecoration: "none" }}>
+            Send a Message
+          </Link>
         </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            required
-            placeholder="Full name"
-            className="bg-cardwhite/10 text-cardwhite placeholder:text-cardwhite/40 rounded-xl px-4 py-3 text-sm outline-none focus-visible:outline-terracotta"
-          />
-          <input
-            type="tel"
-            required
-            placeholder="Phone or WhatsApp number"
-            className="bg-cardwhite/10 text-cardwhite placeholder:text-cardwhite/40 rounded-xl px-4 py-3 text-sm outline-none focus-visible:outline-terracotta"
-          />
-          <textarea
-            required
-            rows={3}
-            placeholder="What would you like made?"
-            className="bg-cardwhite/10 text-cardwhite placeholder:text-cardwhite/40 rounded-xl px-4 py-3 text-sm outline-none resize-none focus-visible:outline-terracotta"
-          />
-          <button
-            type="submit"
-            className="bg-terracotta text-cardwhite rounded-full px-6 py-3.5 text-sm tracking-wide hover:bg-terracotta-dark transition-colors"
-          >
-            {sent ? "Sent — we'll be in touch" : "Send Enquiry"}
-          </button>
-        </form>
       </div>
     </section>
   );

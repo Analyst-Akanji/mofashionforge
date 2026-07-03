@@ -1,33 +1,40 @@
+import { Link } from "react-router-dom";
+import useReveal from "../hooks/useReveal";
+
 export default function StoryBanner() {
+  const ref = useReveal();
   return (
-    <section className="reveal py-8 px-6 md:px-10 max-w-6xl mx-auto">
-      <div className="grid md:grid-cols-2 rounded-[28px] overflow-hidden bg-cardwhite">
-        <div className="order-2 md:order-1 p-10 md:p-14 flex flex-col justify-center">
-          <p className="text-xs tracking-wider2 uppercase text-sage mb-4">
-            Our Story
-          </p>
-          <h2 className="font-display text-2xl md:text-3xl text-umber leading-snug">
-            Crochet isn't a trend here — it's a discipline.
-          </h2>
-          <p className="mt-5 text-umber/70 text-sm md:text-base leading-relaxed max-w-md">
-            Mo_FashionForge designs premium crochet pieces for men and women
-            who want their clothing to carry the same intention they bring
-            to everything else they wear. Every outfit is one of a kind,
-            shaped by hand around the person who will wear it.
-          </p>
-          <a
-            href="#contact"
-            className="mt-7 text-sm text-umber border-b border-umber/30 pb-1 w-fit hover:border-terracotta hover:text-terracotta transition-colors"
-          >
-            Commission a piece
-          </a>
-        </div>
-        <div className="order-1 md:order-2 min-h-[320px] md:min-h-[440px]">
+    <section ref={ref} style={{ background: "#FAF8F3", padding: "80px 24px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <div className="reveal">
           <img
-            src="/assets/story-tools.jpg"
-            alt="Crochet hooks and cream yarn in a woven basket"
-            className="w-full h-full object-cover"
+            src="/assets/story-portrait.jpg"
+            alt="Morayo — Founder of Mo_FashionForge"
+            style={{
+              width: "100%",
+              aspectRatio: "4/5",
+              objectFit: "cover",
+              objectPosition: "center",
+              borderRadius: "2px",
+              display: "block",
+            }}
           />
+        </div>
+        <div className="reveal">
+          <span className="section-label">Our Story</span>
+          <h2 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2rem, 4vw, 2.8rem)", fontWeight: 400, color: "#0F0F0F", lineHeight: 1.25, margin: "16px 0 24px" }}>
+            Crochet is not a trend here.<br />
+            <em style={{ color: "#3B4A3E" }}>It is a discipline.</em>
+          </h2>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "#6B6B6B", lineHeight: 1.8, marginBottom: "16px" }}>
+            Hi, I'm Morayo — the founder and creative director behind Mo_FashionForge. What began as a passion for crochet has grown into a brand dedicated to creating artistic, handcrafted pieces that celebrate creativity, confidence, and individuality.
+          </p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "#6B6B6B", lineHeight: 1.8, marginBottom: "32px" }}>
+            Every stitch, texture, and design is thoughtfully crafted to create pieces that are both timeless and unforgettable.
+          </p>
+          <Link to="/about" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#B8973A", textDecoration: "none", borderBottom: "1px solid #B8973A", paddingBottom: "2px" }}>
+            Read Morayo's Story →
+          </Link>
         </div>
       </div>
     </section>

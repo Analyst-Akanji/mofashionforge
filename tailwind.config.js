@@ -4,17 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        linen: "#F3EDE4",
-        cardwhite: "#FAF7F2",
-        umber: "#2E2A22",
-        taupe: "#A89078",
-        sage: "#8B8F6B",
-        terracotta: "#C97B68",
-        "terracotta-dark": "#B3614F",
+        black:        "#0F0F0F",
+        ivory:        "#FAF8F3",
+        "ivory-dark": "#F0EDE6",
+        olive:        "#3B4A3E",
+        "olive-dark": "#2A3830",
+        gold:         "#B8973A",
+        "gold-dark":  "#9A7D2E",
+        charcoal:     "#1A1A1A",
+        muted:        "#6B6B6B",
       },
       fontFamily: {
-        display: ["Fraunces", "serif"],
-        body: ["'General Sans'", "Inter", "sans-serif"],
+        display: ["'Cormorant Garamond'", "Georgia", "serif"],
+        body:    ["'Inter'", "sans-serif"],
       },
       letterSpacing: {
         wider2: "0.12em",

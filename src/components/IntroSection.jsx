@@ -1,61 +1,45 @@
-import StitchUnderline from "./StitchUnderline";
+import { Link } from "react-router-dom";
+import useReveal from "../hooks/useReveal";
 
 export default function IntroSection() {
+  const ref = useReveal();
   return (
-    <section
-      id="intro"
-      className="reveal pt-24 md:pt-32 pb-20 px-6 md:px-10 max-w-6xl mx-auto"
-    >
-      <div className="grid md:grid-cols-12 gap-8 items-end">
-        <div className="md:col-span-7">
-          <p className="text-xs tracking-wider2 uppercase text-sage mb-5">
-            Handcrafted, stitch by stitch — Nigeria
+    <section ref={ref} style={{ background: "#FAF8F3", padding: "80px 24px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <div className="reveal">
+          <span className="section-label">The Brand</span>
+          <h2 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2.2rem, 4vw, 3.2rem)", fontWeight: 400, color: "#0F0F0F", lineHeight: 1.2, margin: "16px 0 24px" }}>
+            Crochet, worn like it was made<br />
+            <em style={{ color: "#3B4A3E" }}>for one body.</em>
+          </h2>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "#6B6B6B", lineHeight: 1.8, maxWidth: "440px", marginBottom: "32px" }}>
+            Mo_FashionForge creates premium handcrafted crochet pieces for men and women — every garment made to order, one hook, one strand, one fit at a time.
           </p>
-          <h1 className="font-display text-[2.6rem] leading-[1.08] md:text-[4.2rem] md:leading-[1.05] text-umber">
-            Crochet, worn
-            <br />
-            like it was made
-            <br />
-            <StitchUnderline>for one body.</StitchUnderline>
-          </h1>
-          <p className="mt-7 text-umber/70 text-base md:text-lg max-w-md leading-relaxed">
-            Premium crochet outfits for men and women — every piece made to
-            order, one hook, one strand, one fit at a time.
-          </p>
-          <div className="mt-9 flex flex-wrap items-center gap-4">
-            <a
-              href="#shop"
-              className="bg-terracotta text-cardwhite px-7 py-3.5 rounded-full text-sm tracking-wide hover:bg-terracotta-dark transition-colors"
-            >
-              Explore the Collection
-            </a>
-            <a
-              href="#process"
-              className="text-umber text-sm tracking-wide border-b border-umber/30 pb-1 hover:border-umber transition-colors"
-            >
-              See how it's made
-            </a>
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            <Link to="/shop" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", background: "#0F0F0F", color: "#FAF8F3", padding: "14px 28px", textDecoration: "none" }}>
+              Shop the Collection
+            </Link>
+            <Link to="/custom-orders" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", border: "1px solid #0F0F0F", color: "#0F0F0F", padding: "14px 28px", textDecoration: "none" }}>
+              Commission a Piece
+            </Link>
           </div>
         </div>
-
-        <div className="md:col-span-5">
-          <div className="relative rounded-[28px] overflow-hidden picot-edge">
-            <img
-              src="/assets/hero-yarn.jpg"
-              alt="Hands holding stacked balls of pink, olive, and taupe yarn"
-              className="w-full h-[420px] md:h-[520px] object-cover"
-            />
-          </div>
-          <div className="flex items-center gap-3 mt-6 pl-2">
-            <div className="flex -space-x-2">
-              <span className="w-7 h-7 rounded-full bg-[#E8B6C2] border-2 border-linen" />
-              <span className="w-7 h-7 rounded-full bg-sage border-2 border-linen" />
-              <span className="w-7 h-7 rounded-full bg-taupe border-2 border-linen" />
-            </div>
-            <p className="text-xs text-umber/60">
-              Dyed, sourced &amp; finished by hand
-            </p>
-          </div>
+        <div className="reveal" style={{ position: "relative" }}>
+          <img
+            src="/assets/intro-piece.jpg"
+            alt="Mo_FashionForge handcrafted crochet piece"
+            style={{
+              width: "100%",
+              aspectRatio: "3/4",
+              objectFit: "cover",
+              objectPosition: "top center",
+              borderRadius: "2px",
+              display: "block",
+            }}
+          />
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", color: "#B8973A", textTransform: "uppercase", textAlign: "right", marginTop: "12px", margin: "12px 0 0" }}>
+            Handcrafted · Made to Order
+          </p>
         </div>
       </div>
     </section>

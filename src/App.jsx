@@ -1,28 +1,28 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import IntroSection from "./components/IntroSection";
-import ShopSection from "./components/ShopSection";
-import StoryBanner from "./components/StoryBanner";
-import ProcessSection from "./components/ProcessSection";
-import ContactSection from "./components/ContactSection";
-import Footer from "./components/Footer";
-import useReveal from "./hooks/useReveal";
+import WhatsAppFloat from "./components/WhatsAppFloat";
+import HomePage from "./pages/HomePage";
+import ShopPage from "./pages/ShopPage";
+import AboutPage from "./pages/AboutPage";
+import CustomOrdersPage from "./pages/CustomOrdersPage";
+import GalleryPage from "./pages/GalleryPage";
+import ContactPage from "./pages/ContactPage";
+import ScrollToTop from "./components/ScrollToTop";
 
-function App() {
-  const containerRef = useReveal();
-
+export default function App() {
   return (
-    <div ref={containerRef} className="min-h-screen bg-linen font-body">
+    <BrowserRouter>
+      <ScrollToTop />
       <Navbar />
-      <Hero />
-      <IntroSection />
-      <ShopSection />
-      <StoryBanner />
-      <ProcessSection />
-      <ContactSection />
-      <Footer />
-    </div>
+      <WhatsAppFloat />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/custom-orders" element={<CustomOrdersPage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

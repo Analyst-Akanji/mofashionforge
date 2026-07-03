@@ -1,59 +1,32 @@
-const STEPS = [
-  {
-    n: "01",
-    title: "Strand selected",
-    text: "Every order starts with yarn chosen for the piece — weight, fibre, and color matched to the design.",
-  },
-  {
-    n: "02",
-    title: "Measured to you",
-    text: "We take your measurements before a single stitch is made. No standard sizing, no guesswork.",
-  },
-  {
-    n: "03",
-    title: "Hand-hooked",
-    text: "Each garment is crocheted by hand, row by row — typically 5 to 9 days depending on the piece.",
-  },
-  {
-    n: "04",
-    title: "Finished & delivered",
-    text: "Steamed, trimmed, and packed with care. Delivered across Nigeria, shipped internationally on request.",
-  },
+import useReveal from "../hooks/useReveal";
+
+const VALUES = [
+  { n: "01", title: "Bold & Artistic",    text: "Fashion is more than clothing — it's a form of self-expression, a way to tell your story without saying a word." },
+  { n: "02", title: "Handcrafted",        text: "Every piece is crocheted by hand, row by row. No shortcuts, no machines — only intention and skill." },
+  { n: "03", title: "Made to Order",      text: "Nothing sits in a warehouse. Every garment is made specifically for the person who will wear it." },
+  { n: "04", title: "Timeless Quality",   text: "We create pieces that don't follow trends — they set them. Invest in something built to last." },
 ];
 
 export default function ProcessSection() {
+  const ref = useReveal();
   return (
-    <section
-      id="process"
-      className="py-20 px-6 md:px-10 max-w-6xl mx-auto"
-    >
-      <div className="reveal mb-12 max-w-lg">
-        <p className="text-xs tracking-wider2 uppercase text-sage mb-3">
-          The Process
-        </p>
-        <h2 className="font-display text-3xl md:text-4xl text-umber">
-          Four steps from yarn to outfit
-        </h2>
-      </div>
-
-      <div className="grid md:grid-cols-4 gap-8">
-        {STEPS.map((step, i) => (
-          <div
-            key={step.n}
-            className="reveal"
-            style={{ transitionDelay: `${i * 80}ms` }}
-          >
-            <span className="font-display text-sm text-terracotta">
-              {step.n}
-            </span>
-            <h3 className="font-display text-xl text-umber mt-2 mb-2">
-              {step.title}
-            </h3>
-            <p className="text-sm text-umber/65 leading-relaxed">
-              {step.text}
-            </p>
-          </div>
-        ))}
+    <section ref={ref} style={{ background: "#3B4A3E", padding: "80px 24px" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <div className="reveal" style={{ marginBottom: "56px" }}>
+          <span className="section-label" style={{ color: "#B8973A" }}>Our Values</span>
+          <h2 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2rem, 4vw, 2.8rem)", fontWeight: 400, color: "#FAF8F3", margin: "12px 0 0" }}>
+            What we stand for
+          </h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "2px" }}>
+          {VALUES.map((v, i) => (
+            <div key={v.n} className="reveal" style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.15)", padding: "40px" }}>
+              <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "3rem", color: "#B8973A", opacity: 0.4, lineHeight: 1 }}>{v.n}</span>
+              <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", fontWeight: 500, color: "#FAF8F3", margin: "12px 0 12px" }}>{v.title}</h3>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "rgba(250,248,243,0.65)", lineHeight: 1.75, margin: 0 }}>{v.text}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
