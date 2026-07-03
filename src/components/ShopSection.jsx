@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 import useReveal from "../hooks/useReveal";
 
 const CATEGORIES = [
-  { name: "Earrings",       desc: "Handwoven statement earrings", bg: "#3B4A3E" },
-  { name: "Bucket Hats",    desc: "Artisan-crafted head pieces",  bg: "#0F0F0F" },
-  { name: "Tops",           desc: "Premium crochet tops for her", bg: "#B8973A" },
-  { name: "Sweatshirts",    desc: "Cosy handcrafted layers",      bg: "#2A3830" },
-  { name: "Accessories",    desc: "Bags, belts & more",           bg: "#9A7D2E" },
-  { name: "Limited Edition",desc: "One-of-a-kind pieces",         bg: "#1A1A1A" },
+  { name: "Earrings",        desc: "Handwoven statement earrings", bg: "#3B4A3E" },
+  { name: "Bucket Hats",     desc: "Artisan-crafted head pieces",  bg: "#2A2A2A" },
+  { name: "Tops",            desc: "Premium crochet tops for her", bg: "#B8973A" },
+  { name: "Sweatshirts",     desc: "Cosy handcrafted layers",      bg: "#2A3830" },
+  { name: "Accessories",     desc: "Bags, belts & more",           bg: "#9A7D2E" },
+  { name: "Limited Edition", desc: "One-of-a-kind pieces",         bg: "#1F1F1F", border: "1px solid rgba(184,151,58,0.3)" },
 ];
 
 export default function ShopSection() {
@@ -31,7 +31,7 @@ export default function ShopSection() {
             <Link
               key={cat.name}
               to="/shop"
-              style={{ textDecoration: "none", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: cat.bg, padding: "20px", aspectRatio: "1/1", overflow: "hidden" }}
+              style={{ textDecoration: "none", display: "flex", flexDirection: "column", justifyContent: "flex-end", background: cat.bg, border: cat.border || "none", padding: "20px", aspectRatio: "1/1", overflow: "hidden" }}
             >
               <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(1rem, 2vw, 1.4rem)", fontWeight: 400, color: "#FAF8F3", margin: "0 0 4px" }}>{cat.name}</h3>
               <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", color: "rgba(250,248,243,0.6)", margin: 0, letterSpacing: "0.04em" }}>{cat.desc}</p>

@@ -182,3 +182,9 @@ body {
     text-align: center !important;
   }
 }
+
+/* On mobile, reverse intro grid order so image shows first */
+@media (max-width: 768px) {
+  .intro-image { order: -1; }
+  .intro-text  { order: 1; }
+}

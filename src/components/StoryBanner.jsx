@@ -11,7 +11,7 @@ export default function StoryBanner() {
             <img
               src="/assets/story-portrait.jpg"
               alt="Morayo — Founder of Mo_FashionForge"
-              style={{ width: "100%", aspectRatio: "4/5", objectFit: "cover", objectPosition: "center", borderRadius: "2px", display: "block" }}
+              style={{ width: "100%", aspectRatio: "4/6", objectFit: "cover", objectPosition: "center", borderRadius: "2px", display: "block" }}
             />
           </div>
           <div>
