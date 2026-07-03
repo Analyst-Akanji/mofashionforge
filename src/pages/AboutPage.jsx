@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
+import PageHero from "../components/PageHero";
 
 const WHATSAPP_URL = "https://wa.me/2348185123890";
 const INSTAGRAM_URL = "https://www.instagram.com/mo_fashionforge";
@@ -9,18 +10,11 @@ export default function AboutPage() {
     <>
       <main style={{ paddingTop: "72px", minHeight: "100vh", background: "#FAF8F3" }}>
 
-        {/* Hero */}
-        <div style={{ background: "#0F0F0F", padding: "80px 24px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#B8973A" }}>
-              About
-            </span>
-            <h1 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(2.8rem, 6vw, 4.5rem)", fontWeight: 300, color: "#FAF8F3", margin: "16px 0 0", lineHeight: 1.1 }}>
-              Wear Art.<br />
-              <em>Embrace Confidence.</em>
-            </h1>
-          </div>
-        </div>
+        <PageHero
+          image="/assets/hero-about.jpg"
+          label="About"
+          title="Wear Art.<br /><em>Embrace Confidence.</em>"
+        />
 
         {/* Founder section */}
         <div style={{ padding: "80px 24px", background: "#FAF8F3" }}>
@@ -107,10 +101,10 @@ export default function AboutPage() {
               My crochet journey began with a simple curiosity and a desire to create with my hands. What started as learning stitches and experimenting with yarn gradually became a deep passion for transforming ordinary materials into extraordinary pieces of art.
             </p>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "rgba(250,248,243,0.75)", lineHeight: 1.9, marginBottom: "20px" }}>
-              Over time, crochet became more than a craft — it became a creative language through which I could express my ideas, push boundaries, and design pieces that make people feel beautiful and confident. Every project has strengthened my love for the art and inspired me to build a brand that stands for creativity, authenticity, and craftsmanship.
+              Over time, crochet became more than a craft — it became a creative language through which I could express my ideas, push boundaries, and design pieces that make people feel beautiful and confident.
             </p>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "15px", color: "rgba(250,248,243,0.75)", lineHeight: 1.9 }}>
-              Today, Mo_FashionForge is more than a crochet brand — it is a celebration of artistry, individuality, and the beauty of handmade fashion. Each piece is created with intention, designed to make a statement, and crafted for those who appreciate fashion as an art form.
+              Today, Mo_FashionForge is more than a crochet brand — it is a celebration of artistry, individuality, and the beauty of handmade fashion.
             </p>
           </div>
         </div>
@@ -124,10 +118,7 @@ export default function AboutPage() {
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#B8973A", margin: "0 0 40px" }}>
               — Morayo, Founder & Creative Director
             </p>
-            <Link
-              to="/shop"
-              style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", background: "#B8973A", color: "#FAF8F3", padding: "16px 32px", textDecoration: "none", display: "inline-block" }}
-            >
+            <Link to="/shop" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", background: "#B8973A", color: "#FAF8F3", padding: "16px 32px", textDecoration: "none", display: "inline-block" }}>
               Shop the Collection
             </Link>
           </div>
