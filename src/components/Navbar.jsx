@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { label: "Shop",          to: "/shop" },
   { label: "Custom Orders", to: "/custom-orders" },
   { label: "Gallery",       to: "/gallery" },
+  { label: "Blog", to: "/blog" },
   { label: "About",         to: "/about" },
   { label: "Contact",       to: "/contact" },
 ];
