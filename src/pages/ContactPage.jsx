@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
+import { supabase } from "../lib/supabase";
 
 const WHATSAPP_URL = "https://wa.me/2348185123890";
 const INSTAGRAM_URL = "https://www.instagram.com/mo_fashionforge";
@@ -9,6 +10,25 @@ const EMAIL = "karimotmorayo2019@gmail.com";
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [sent, setSent] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    const { error } = await supabase
+      .from("contact_submissions")
+      .insert({ name: form.name, email: form.email, message: form.message, status: "unread" });
+
+    if (error) {
+      setError("Something went wrong. Please try WhatsApp or email directly.");
+    } else {
+      setSent(true);
+    }
+    setSaving(false);
+  };
 
   return (
     <>
@@ -61,27 +81,43 @@ export default function ContactPage() {
             {/* Right — form */}
             <div>
               {sent ? (
-                <div style={{ background: "#F0EDE6", padding: "40px", textAlign: "center" }}>
+                <div style={{ background: "#F0EDE6", padding: "40px", textAlign: "center", borderRadius: "2px" }}>
                   <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.8rem", color: "#3B4A3E", margin: "0 0 8px" }}>Message sent!</p>
-                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: 0 }}>Morayo will be in touch within 24 hours.</p>
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: "0 0 24px" }}>Morayo will be in touch within 24 hours.</p>
+                  <button onClick={() => { setSent(false); setForm({ name: "", email: "", message: "" }); }}
+                    style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", background: "none", border: "1px solid #3B4A3E", color: "#3B4A3E", padding: "10px 20px", cursor: "pointer" }}>
+                    Send Another
+                  </button>
                 </div>
               ) : (
-                <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                   {[
                     { name: "name", label: "Full Name *", type: "text" },
                     { name: "email", label: "Email Address *", type: "email" },
                   ].map((field) => (
                     <div key={field.name}>
                       <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", display: "block", marginBottom: "8px" }}>{field.label}</label>
-                      <input type={field.type} required value={form[field.name]} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })} style={{ width: "100%", background: "#F0EDE6", border: "1px solid rgba(0,0,0,0.1)", color: "#0F0F0F", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", boxSizing: "border-box" }} />
+                      <input
+                        type={field.type} required
+                        value={form[field.name]}
+                        onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                        style={{ width: "100%", background: "#F0EDE6", border: "1px solid rgba(0,0,0,0.1)", color: "#0F0F0F", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", boxSizing: "border-box", borderRadius: "2px" }}
+                      />
                     </div>
                   ))}
                   <div>
                     <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", display: "block", marginBottom: "8px" }}>Message *</label>
-                    <textarea required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="How can Morayo help you?" style={{ width: "100%", background: "#F0EDE6", border: "1px solid rgba(0,0,0,0.1)", color: "#0F0F0F", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+                    <textarea required rows={6}
+                      value={form.message}
+                      onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      placeholder="How can Morayo help you?"
+                      style={{ width: "100%", background: "#F0EDE6", border: "1px solid rgba(0,0,0,0.1)", color: "#0F0F0F", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", resize: "vertical", boxSizing: "border-box", borderRadius: "2px" }}
+                    />
                   </div>
-                  <button type="submit" style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px" }}>
-                    Send Message
+                  {error && <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#DC2626", margin: 0 }}>{error}</p>}
+                  <button type="submit" disabled={saving}
+                    style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", opacity: saving ? 0.7 : 1 }}>
+                    {saving ? "Sending..." : "Send Message"}
                   </button>
                 </form>
               )}

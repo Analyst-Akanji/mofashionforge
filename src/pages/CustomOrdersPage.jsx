@@ -1,17 +1,37 @@
 import { useState } from "react";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
+import { supabase } from "../lib/supabase";
 
 const WHATSAPP_URL = "https://wa.me/2348185123890";
 
 export default function CustomOrdersPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", description: "" });
-  const [files, setFiles] = useState([]);
   const [sent, setSent] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setSaving(true);
+    setError("");
+
+    const { error } = await supabase
+      .from("custom_order_inquiries")
+      .insert({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        description: form.description,
+        status: "new",
+      });
+
+    if (error) {
+      setError("Something went wrong. Please try WhatsApp directly.");
+    } else {
+      setSent(true);
+    }
+    setSaving(false);
   };
 
   return (
@@ -52,18 +72,19 @@ export default function CustomOrdersPage() {
               <div style={{ background: "#0F0F0F", padding: "32px", borderRadius: "2px", marginBottom: "24px" }}>
                 <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#FAF8F3", margin: "0 0 20px" }}>Timeline & Pricing</h3>
                 {[
-                  { label: "Production time", value: "5–9 working days (depending on complexity)" },
-                  { label: "Pricing starts from", value: "₦25,000 — quoted after brief review" },
-                  { label: "Rush orders", value: "Available at additional cost — enquire on WhatsApp" },
+                  { label: "Production time", value: "5–9 working days" },
+                  { label: "Pricing starts from", value: "₦25,000 — quoted after brief" },
+                  { label: "Rush orders", value: "Available at additional cost" },
                   { label: "Deposit", value: "50% upfront, 50% before delivery" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid rgba(250,248,243,0.08)", flexWrap: "wrap", gap: "8px" }}>
-                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.5)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</span>
+                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.5)" }}>{row.label}</span>
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#FAF8F3" }}>{row.value}</span>
                   </div>
                 ))}
               </div>
-              <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" style={{ display: "block", textAlign: "center", background: "#3B4A3E", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "16px 24px", textDecoration: "none" }}>
+              <a href={WHATSAPP_URL} target="_blank" rel="noreferrer"
+                style={{ display: "block", textAlign: "center", background: "#3B4A3E", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "16px 24px", textDecoration: "none" }}>
                 Chat Directly on WhatsApp
               </a>
             </div>
@@ -82,52 +103,49 @@ export default function CustomOrdersPage() {
             </p>
 
             {sent ? (
-              <div style={{ background: "rgba(184,151,58,0.15)", border: "1px solid #B8973A", padding: "32px", textAlign: "center" }}>
-                <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#FAF8F3", margin: "0 0 8px" }}>Request sent!</p>
-                <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "rgba(250,248,243,0.65)", margin: 0 }}>Morayo will be in touch within 48 hours.</p>
+              <div style={{ background: "rgba(184,151,58,0.15)", border: "1px solid #B8973A", padding: "40px", textAlign: "center", borderRadius: "2px" }}>
+                <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2rem", color: "#FAF8F3", margin: "0 0 8px" }}>Request sent!</p>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "rgba(250,248,243,0.7)", margin: "0 0 24px" }}>
+                  Morayo will be in touch within 48 hours.
+                </p>
+                <button
+                  onClick={() => { setSent(false); setForm({ name: "", email: "", phone: "", description: "" }); }}
+                  style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", background: "none", border: "1px solid #B8973A", color: "#B8973A", padding: "10px 20px", cursor: "pointer" }}>
+                  Submit Another
+                </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {[
-                  { name: "name", label: "Full Name *", type: "text", required: true },
-                  { name: "email", label: "Email Address *", type: "email", required: true },
-                  { name: "phone", label: "Phone / WhatsApp Number *", type: "tel", required: true },
+                  { name: "name", label: "Full Name *", type: "text" },
+                  { name: "email", label: "Email Address *", type: "email" },
+                  { name: "phone", label: "Phone / WhatsApp Number *", type: "tel" },
                 ].map((field) => (
                   <div key={field.name}>
                     <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(250,248,243,0.6)", display: "block", marginBottom: "8px" }}>{field.label}</label>
                     <input
-                      type={field.type}
-                      required={field.required}
+                      type={field.type} required
                       value={form[field.name]}
                       onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
-                      style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(250,248,243,0.15)", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(250,248,243,0.15)", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", boxSizing: "border-box", borderRadius: "2px" }}
                     />
                   </div>
                 ))}
                 <div>
-                  <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(250,248,243,0.6)", display: "block", marginBottom: "8px" }}>Describe Your Desired Piece *</label>
-                  <textarea
-                    required
-                    rows={5}
+                  <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(250,248,243,0.6)", display: "block", marginBottom: "8px" }}>
+                    Describe Your Desired Piece *
+                  </label>
+                  <textarea required rows={5}
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Tell Morayo the piece you have in mind — style, colours, occasion, size..."
-                    style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(250,248,243,0.15)", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                    style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(250,248,243,0.15)", color: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", resize: "vertical", boxSizing: "border-box", borderRadius: "2px" }}
                   />
                 </div>
-                <div>
-                  <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(250,248,243,0.6)", display: "block", marginBottom: "8px" }}>Upload Inspiration Photos (optional)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => setFiles([...e.target.files])}
-                    style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.6)", width: "100%" }}
-                  />
-                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", color: "rgba(250,248,243,0.4)", margin: "8px 0 0" }}>Up to 3 photos · JPG or PNG · Max 5MB each</p>
-                </div>
-                <button type="submit" style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", marginTop: "8px" }}>
-                  Send My Request
+                {error && <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#FCA5A5", margin: 0 }}>{error}</p>}
+                <button type="submit" disabled={saving}
+                  style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: saving ? "not-allowed" : "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", marginTop: "8px", opacity: saving ? 0.7 : 1 }}>
+                  {saving ? "Sending..." : "Send My Request"}
                 </button>
               </form>
             )}
