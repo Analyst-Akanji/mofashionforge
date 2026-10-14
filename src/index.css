@@ -91,25 +91,23 @@ body {
   background-position: center top;
 }
 
-@media (max-width: 768px) {
-  .hide-mobile { display: none !important; }
-  .show-mobile { display: block !important; }
-}
+/* ── Responsive helpers ── */
 @media (min-width: 769px) {
   .show-mobile { display: none !important; }
 }
 
-/* ── Mobile responsive fixes ── */
+/* ── Mobile layout (single merged block) ── */
 @media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
 
-  /* IntroSection */
+  /* IntroSection: image first, then text */
   .intro-grid {
     grid-template-columns: 1fr !important;
     gap: 40px !important;
   }
-  .intro-grid .intro-image {
-    order: -1;
-  }
+  .intro-image { order: -1; }
+  .intro-text  { order: 1; }
   .intro-grid img {
     aspect-ratio: 4/3 !important;
     max-height: 360px;
@@ -140,38 +138,6 @@ body {
     grid-template-columns: 1fr !important;
     gap: 32px !important;
   }
-}
-
-/* ── Mobile responsive fixes ── */
-@media (max-width: 768px) {
-
-  /* IntroSection */
-  .intro-grid {
-    grid-template-columns: 1fr !important;
-    gap: 40px !important;
-  }
-
-  /* StoryBanner */
-  .story-grid {
-    grid-template-columns: 1fr !important;
-    gap: 32px !important;
-  }
-
-  /* ShopSection category grid */
-  .shop-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  /* Values grid */
-  .values-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Footer grid */
-  .footer-grid {
-    grid-template-columns: 1fr !important;
-    gap: 32px !important;
-  }
 
   /* Contact buttons */
   .contact-buttons {
@@ -181,10 +147,19 @@ body {
   .contact-buttons a {
     text-align: center !important;
   }
-}
 
-/* On mobile, reverse intro grid order so image shows first */
-@media (max-width: 768px) {
-  .intro-image { order: -1; }
-  .intro-text  { order: 1; }
+  /* ShopPage */
+  .shop-product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .lightbox-inner {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* CustomOrdersPage */
+  .custom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
 }

@@ -22,6 +22,7 @@ export default function GalleryPage() {
   useEffect(() => {
     async function fetchPhotos() {
       const { data } = await supabase.storage.from("gallery-images").list("", {
+        limit: 1000,
         sortBy: { column: "created_at", order: "desc" }
       });
       if (data) {
@@ -83,7 +84,7 @@ export default function GalleryPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px" }} className="gallery-grid">
                 {photos.map((photo, i) => (
                   <div key={photo.name} onClick={() => setSelected(i)} style={{ cursor: "pointer", position: "relative", aspectRatio: "1/1", overflow: "hidden", background: "#1A1A1A" }}>
-                    <img src={photo.url} alt="Client look" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", transition: "transform 0.4s ease" }} className="gallery-img" />
+                    <img src={photo.url} alt="Client look" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block", transition: "transform 0.4s ease" }} className="gallery-img" />
                   </div>
                 ))}
               </div>

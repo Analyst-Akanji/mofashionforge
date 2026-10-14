@@ -6,6 +6,33 @@ const fmt = (n) => `₦${Number(n || 0).toLocaleString("en-NG")}`;
 const CATEGORIES = ["earrings", "bucket_hats", "tops", "sweatshirts", "accessories", "limited"];
 const emptyForm = { name: "", category: "tops", price: "", description: "", stock_qty: 0, is_active: true, is_limited: false, images: [] };
 
+const MAX_IMAGES = 4;
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const BUCKET = "product-images";
+
+const prettyCategory = (c) => (c || "").replaceAll("_", " ");
+// Public URL -> file name inside the bucket
+const storageName = (url) => decodeURIComponent((url || "").split(`/${BUCKET}/`)[1] || "");
+
+// Shrinks big phone photos (max 1600px, JPEG) before upload.
+// Falls back to the original file if anything goes wrong.
+async function compressImage(file) {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+    if (blob && blob.size < file.size) return { blob, ext: "jpg", type: "image/jpeg" };
+  } catch (_) {
+    /* fall through to the original file */
+  }
+  return { blob: file, ext: file.name.split(".").pop().toLowerCase(), type: file.type };
+}
+
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,17 +42,46 @@ export default function AdminProducts() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+  const [originalImages, setOriginalImages] = useState([]);
 
   useEffect(() => { fetchProducts(); }, []);
 
   async function fetchProducts() {
-    const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-    setProducts(data || []);
+    const { data, error: err } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+    if (err) setError(`Couldn't load products: ${err.message}`);
+    else setProducts(data || []);
     setLoading(false);
   }
 
-  function openNew() { setForm(emptyForm); setEditId(null); setShowForm(true); }
+  // Best effort: remove files from the bucket. Never blocks the UI.
+  async function removeFromStorage(urls) {
+    const names = urls.map(storageName).filter(Boolean);
+    if (!names.length) return;
+    const { error: err } = await supabase.storage.from(BUCKET).remove(names);
+    if (err) console.error("Storage cleanup failed:", err.message);
+  }
+
+  // Images uploaded in the form but never saved (cancelled, or switched to another product)
+  function discardUnsavedUploads() {
+    removeFromStorage(form.images.filter((u) => !originalImages.includes(u)));
+  }
+
+  function openNew() {
+    if (showForm) discardUnsavedUploads();
+    setError("");
+    setForm(emptyForm);
+    setOriginalImages([]);
+    setEditId(null);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function openEdit(p) {
+    if (showForm) discardUnsavedUploads();
+    setError("");
+    const images = p.images || [];
     setForm({
       name: p.name, category: p.category,
       price: (p.price / 100).toString(),
@@ -33,43 +89,61 @@ export default function AdminProducts() {
       stock_qty: p.stock_qty || 0,
       is_active: p.is_active,
       is_limited: p.is_limited,
-      images: p.images || [],
+      images,
     });
+    setOriginalImages(images);
     setEditId(p.id);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelForm() {
+    discardUnsavedUploads();
+    setShowForm(false);
   }
 
   async function handleImageUpload(e) {
     const files = Array.from(e.target.files);
+    e.target.value = "";
     if (!files.length) return;
-    if (form.images.length + files.length > 4) {
-      alert("Maximum 4 images per product.");
+    if (form.images.length + files.length > MAX_IMAGES) {
+      setError(`Maximum ${MAX_IMAGES} images per product.`);
+      return;
+    }
+    const badType = files.find((f) => !ALLOWED_TYPES.includes(f.type));
+    if (badType) {
+      setError(`"${badType.name}" isn't a JPG, PNG or WebP image.`);
       return;
     }
 
+    setError("");
     setUploading(true);
     const uploaded = [];
+    const failed = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setUploadProgress(`Uploading image ${i + 1} of ${files.length}...`);
-      const ext = file.name.split(".").pop();
+      const { blob, ext, type } = await compressImage(file);
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-      const { data, error } = await supabase.storage
-        .from("product-images")
-        .upload(filename, file, { cacheControl: "3600", upsert: false });
+      const { error: err } = await supabase.storage
+        .from(BUCKET)
+        .upload(filename, blob, { cacheControl: "3600", upsert: false, contentType: type });
 
-      if (!error) {
-        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(filename);
+      if (err) {
+        failed.push(file.name);
+        console.error("Upload failed:", err.message);
+      } else {
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filename);
         uploaded.push(urlData.publicUrl);
       }
     }
 
-    setForm(prev => ({ ...prev, images: [...prev.images, ...uploaded] }));
+    setForm((prev) => ({ ...prev, images: [...prev.images, ...uploaded] }));
+    if (failed.length) setError(`Couldn't upload: ${failed.join(", ")}. Please try again.`);
     setUploading(false);
     setUploadProgress("");
-    e.target.value = "";
   }
 
   function removeImage(idx) {
@@ -77,38 +151,72 @@ export default function AdminProducts() {
   }
 
   async function saveProduct() {
-    if (!form.name || !form.price) { alert("Name and price are required."); return; }
+    if (!form.name.trim()) { setError("Product name is required."); return; }
+    const price = parseFloat(form.price);
+    if (!Number.isFinite(price) || price <= 0) { setError("Enter a price greater than zero."); return; }
+
     setSaving(true);
+    setError("");
     const payload = {
-      name: form.name,
+      name: form.name.trim(),
       category: form.category,
-      price: Math.round(parseFloat(form.price) * 100),
+      price: Math.round(price * 100),
       description: form.description,
-      stock_qty: parseInt(form.stock_qty) || 0,
+      stock_qty: Math.max(0, parseInt(form.stock_qty, 10) || 0),
       is_active: form.is_active,
       is_limited: form.is_limited,
       images: form.images,
       updated_at: new Date().toISOString(),
     };
-    if (editId) {
-      await supabase.from("products").update(payload).eq("id", editId);
-    } else {
-      await supabase.from("products").insert(payload);
+
+    const query = editId
+      ? supabase.from("products").update(payload).eq("id", editId)
+      : supabase.from("products").insert(payload);
+    // .select("id") lets us detect "0 rows changed" (e.g. blocked by RLS), which Supabase doesn't report as an error
+    const { data, error: err } = await query.select("id");
+
+    if (err || !data?.length) {
+      setError(`Couldn't save the product: ${err?.message || "no changes were saved (check permissions)"}`);
+      setSaving(false);
+      return; // keep the form open so nothing she typed is lost
     }
+
+    // Images she removed while editing are now safe to delete from storage
+    removeFromStorage(originalImages.filter((u) => !form.images.includes(u)));
     await fetchProducts();
     setShowForm(false);
     setSaving(false);
   }
 
   async function toggleActive(p) {
-    await supabase.from("products").update({ is_active: !p.is_active }).eq("id", p.id);
+    if (busyId) return;
+    setBusyId(p.id);
+    setError("");
+    const { data, error: err } = await supabase
+      .from("products")
+      .update({ is_active: !p.is_active, updated_at: new Date().toISOString() })
+      .eq("id", p.id)
+      .select("id");
+    if (err || !data?.length) {
+      setError(`Couldn't update "${p.name}": ${err?.message || "no changes were saved (check permissions)"}`);
+    }
     await fetchProducts();
+    setBusyId(null);
   }
 
-  async function deleteProduct(id) {
-    if (!confirm("Delete this product? This cannot be undone.")) return;
-    await supabase.from("products").delete().eq("id", id);
+  async function deleteProduct(p) {
+    if (busyId) return;
+    if (!confirm(`Delete "${p.name}"? This cannot be undone. (Deactivate hides it from the shop without deleting.)`)) return;
+    setBusyId(p.id);
+    setError("");
+    const { data, error: err } = await supabase.from("products").delete().eq("id", p.id).select("id");
+    if (err || !data?.length) {
+      setError(`Couldn't delete "${p.name}": ${err?.message || "nothing was deleted (check permissions)"}`);
+    } else {
+      removeFromStorage(p.images || []);
+    }
     await fetchProducts();
+    setBusyId(null);
   }
 
   const inputStyle = { width: "100%", padding: "10px 12px", fontFamily: "Inter, sans-serif", fontSize: "13px", border: "1px solid #E5E5E5", borderRadius: "2px", boxSizing: "border-box" };
@@ -194,7 +302,7 @@ export default function AdminProducts() {
                         <div>
                           <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: "0 0 4px" }}>Click to upload photos</p>
                           <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", color: "#B8973A", margin: 0 }}>
-                            {4 - form.images.length} slot{4 - form.images.length !== 1 ? "s" : ""} remaining · JPG or PNG
+                            {4 - form.images.length} slot{4 - form.images.length !== 1 ? "s" : ""} remaining · JPG, PNG or WebP
                           </p>
                         </div>
                       )}
@@ -218,7 +326,7 @@ export default function AdminProducts() {
               <button onClick={saveProduct} disabled={saving || uploading} style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 24px", opacity: (saving || uploading) ? 0.7 : 1 }}>
                 {saving ? "Saving..." : "Save Product"}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "1px solid #E5E5E5", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 24px", color: "#6B6B6B" }}>
+              <button onClick={cancelForm} style={{ background: "none", border: "1px solid #E5E5E5", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 24px", color: "#6B6B6B" }}>
                 Cancel
               </button>
             </div>
@@ -267,7 +375,7 @@ export default function AdminProducts() {
                         <button onClick={() => toggleActive(p)} style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6B6B6B", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                           {p.is_active ? "Deactivate" : "Activate"}
                         </button>
-                        <button onClick={() => deleteProduct(p.id)} style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#DC2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Delete</button>
+                        <button onClick={() => deleteProduct(p)} style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#DC2626", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Delete</button>
                       </div>
                     </td>
                   </tr>

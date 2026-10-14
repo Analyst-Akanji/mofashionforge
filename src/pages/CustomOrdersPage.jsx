@@ -154,11 +154,6 @@ export default function CustomOrdersPage() {
 
         <Footer />
       </main>
-      <style>{`
-        @media (max-width: 768px) {
-          .custom-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-        }
-      `}</style>
     </>
   );
 }

@@ -81,7 +81,7 @@ export default function BlogPostPage() {
 
           <div style={{ fontFamily: "Inter, sans-serif", fontSize: "16px", color: "#1A1A1A", lineHeight: 1.9 }}>
             {post.content.split("\n\n").map((para, i) => (
-              <p key={i} style={{ marginBottom: "24px" }}>{para}</p>
+              <p key={i} style={{ marginBottom: "24px", whiteSpace: "pre-line" }}>{para}</p>
             ))}
           </div>
 

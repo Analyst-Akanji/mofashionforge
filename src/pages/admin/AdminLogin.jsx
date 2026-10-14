@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 export default function AdminLogin() {
@@ -8,6 +8,8 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from?.pathname || "/admin";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,7 +20,7 @@ export default function AdminLogin() {
       setError("Invalid email or password.");
       setLoading(false);
     } else {
-      navigate("/admin");
+      navigate(redirectTo, { replace: true });
     }
   };
 
