@@ -11,6 +11,7 @@ import GalleryPage from "./pages/GalleryPage";
 import ContactPage from "./pages/ContactPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import PolicyPage from "./pages/PolicyPage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -36,6 +37,10 @@ export default function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/privacy" element={<PolicyPage policy="privacy" />} />
+          <Route path="/shipping" element={<PolicyPage policy="shipping" />} />
+          <Route path="/returns" element={<PolicyPage policy="returns" />} />
+          <Route path="/faq" element={<PolicyPage policy="faq" />} />
         </Route>
 
         {/* Admin login is the only admin page that doesn't need a session */}

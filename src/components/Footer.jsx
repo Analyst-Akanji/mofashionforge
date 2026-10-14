@@ -32,8 +32,8 @@ export default function Footer() {
           </div>
           <div>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#B8973A", marginBottom: "16px", marginTop: 0 }}>Info</p>
-            {["FAQ", "Shipping Policy", "Returns Policy", "Privacy Policy"].map(item => (
-              <p key={item} style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.55)", marginBottom: "10px", marginTop: 0 }}>{item}</p>
+            {[["FAQ", "/faq"], ["Shipping Policy", "/shipping"], ["Returns Policy", "/returns"], ["Privacy Policy", "/privacy"]].map(([label, to]) => (
+              <Link key={to} to={to} style={{ display: "block", fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.55)", textDecoration: "none", marginBottom: "10px" }}>{label}</Link>
             ))}
           </div>
         </div>

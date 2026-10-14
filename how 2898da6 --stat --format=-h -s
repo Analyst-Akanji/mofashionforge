@@ -1,0 +1,8 @@
+[33mcommit 2898da6c807ae43b688c5df2e19a5ccd9211fd05[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Analyst-Akanji <ibitowaemmanuel@gmail.com>
+Date:   Sun Jul 5 16:54:49 2026 +0100
+
+    Add change password feature to admin dashboard
+
+ src/components/admin/AdminLayout.jsx | 80 [32m++++++++++++++++++++++++++++++++++[m[31m--[m
+ 1 file changed, 77 insertions(+), 3 deletions(-)
