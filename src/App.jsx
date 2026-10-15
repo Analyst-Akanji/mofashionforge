@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import PublicLayout from "./components/PublicLayout";
 import RequireAdmin from "./components/admin/RequireAdmin";
+import { CartProvider } from "./context/CartContext";
 
 import HomePage from "./pages/HomePage";
 import ShopPage from "./pages/ShopPage";
@@ -12,6 +13,7 @@ import ContactPage from "./pages/ContactPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import PolicyPage from "./pages/PolicyPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -25,6 +27,7 @@ import AdminBlog from "./pages/admin/AdminBlog";
 export default function App() {
   return (
     <BrowserRouter>
+      <CartProvider>
       <ScrollToTop />
       <Routes>
         {/* Public site: Navbar + WhatsApp button stay mounted between pages */}
@@ -41,6 +44,7 @@ export default function App() {
           <Route path="/shipping" element={<PolicyPage policy="shipping" />} />
           <Route path="/returns" element={<PolicyPage policy="returns" />} />
           <Route path="/faq" element={<PolicyPage policy="faq" />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Route>
 
         {/* Admin login is the only admin page that doesn't need a session */}
@@ -57,6 +61,7 @@ export default function App() {
           <Route path="/admin/blog" element={<AdminBlog />} />
         </Route>
       </Routes>
+      </CartProvider>
     </BrowserRouter>
   );
 }

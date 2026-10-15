@@ -162,4 +162,19 @@ body {
     grid-template-columns: 1fr !important;
     gap: 40px !important;
   }
+
+  /* CheckoutPage: order summary first, not sticky */
+  .checkout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .checkout-summary {
+    position: static !important;
+    order: -1;
+  }
+}
+
+/* AdminProducts form */
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr !important; }
 }

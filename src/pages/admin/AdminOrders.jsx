@@ -20,6 +20,7 @@ export default function AdminOrders() {
   const [adminNotes, setAdminNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [receiptUrl, setReceiptUrl] = useState(null); // null = loading, "" = unavailable
 
   useEffect(() => { fetchOrders(); }, []);
 
@@ -31,10 +32,15 @@ export default function AdminOrders() {
 
   const visible = filter === "all" ? orders : orders.filter(o => o.status === filter);
 
-  function openOrder(order) {
+  async function openOrder(order) {
     setSelected(order);
     setNewStatus(order.status);
     setAdminNotes(order.admin_notes || "");
+    setReceiptUrl(null);
+    if (order.receipt_path) {
+      const { data } = await supabase.storage.from("receipts").createSignedUrl(order.receipt_path, 3600);
+      setReceiptUrl(data?.signedUrl || "");
+    }
   }
 
   async function saveOrder() {
@@ -78,7 +84,7 @@ export default function AdminOrders() {
                 <tbody>
                   {visible.map((order) => (
                     <tr key={order.id} style={{ borderBottom: "1px solid #F0F0F0", background: selected?.id === order.id ? "#FEFBF3" : "transparent", cursor: "pointer" }} onClick={() => openOrder(order)}>
-                      <td style={{ padding: "14px 16px", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600 }}>{order.order_ref}</td>
+                      <td style={{ padding: "14px 16px", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600 }}>{order.order_ref}{order.receipt_path && " 🧾"}</td>
                       <td style={{ padding: "14px 16px", fontFamily: "Inter, sans-serif", fontSize: "13px" }}>{order.customer_name}</td>
                       <td style={{ padding: "14px 16px", fontFamily: "Inter, sans-serif", fontSize: "13px" }}>{fmt((order.total || 0) / 100)}</td>
                       <td style={{ padding: "14px 16px" }}>
@@ -108,12 +114,36 @@ export default function AdminOrders() {
                 { label: "Delivery Address", value: selected.delivery_address },
                 { label: "Total", value: fmt((selected.total || 0) / 100) },
                 { label: "Payment Ref", value: selected.payment_ref || "—" },
+                { label: "Order Notes", value: selected.customer_notes || "—" },
               ].map(row => (
                 <div key={row.label} style={{ marginBottom: "12px" }}>
                   <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", margin: "0 0 2px" }}>{row.label}</p>
                   <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#0F0F0F", margin: 0 }}>{row.value}</p>
                 </div>
               ))}
+
+              {Array.isArray(selected.items) && selected.items.length > 0 && (
+                <div style={{ marginBottom: "12px" }}>
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", margin: "0 0 2px" }}>Items</p>
+                  {selected.items.map((it, i) => (
+                    <p key={i} style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#0F0F0F", margin: "0 0 2px" }}>
+                      {it.qty} × {it.name} — {fmt((it.price || 0) / 100)}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {selected.receipt_path && (
+                <div style={{ marginBottom: "12px" }}>
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", margin: "0 0 2px" }}>Payment Receipt</p>
+                  {receiptUrl === null ? (
+                    <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6B6B6B", margin: 0 }}>Loading...</p>
+                  ) : receiptUrl ? (
+                    <a href={receiptUrl} target="_blank" rel="noreferrer" style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#B8973A" }}>View receipt →</a>
+                  ) : (
+                    <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#DC2626", margin: 0 }}>Couldn't load the receipt</p>
+                  )}
+                </div>
+              )}
 
               <div style={{ borderTop: "1px solid #F0F0F0", paddingTop: "16px", marginTop: "16px" }}>
                 <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", display: "block", marginBottom: "8px" }}>Update Status</label>
