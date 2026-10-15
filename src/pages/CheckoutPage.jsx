@@ -88,7 +88,15 @@ export default function CheckoutPage() {
     const orderRef = makeOrderRef();
 
     // 1) Upload the receipt (private bucket)
-    const { blob, ext, type } = await compressImage(file, { maxSize: 2000, quality: 0.9, minBytes: 1.5 * 1024 * 1024 });
+    // If shrinking the file fails for any reason (e.g. a PDF), upload the original instead
+    let blob = file;
+    let ext = file.name.split(".").pop().toLowerCase();
+    let type = file.type;
+    try {
+      ({ blob, ext, type } = await compressImage(file, { maxSize: 2000, quality: 0.9, minBytes: 1.5 * 1024 * 1024 }));
+    } catch (err) {
+      console.error("Receipt compression failed, uploading the original file:", err);
+    }
     if (blob.size > MAX_RECEIPT_BYTES) {
       setError("That receipt file is too large (max 5 MB). Please upload a smaller one or a screenshot.");
       setSaving(false);
@@ -114,6 +122,7 @@ export default function CheckoutPage() {
       delivery_address: form.address.trim(),
       customer_notes: form.notes.trim() || null,
       items: items.map(({ id, name, price, qty }) => ({ product_id: id, name, price, qty })),
+      subtotal: total, // the orders table requires it; no delivery fee is added at checkout yet
       total,
       status: "pending",
       receipt_path: receiptPath,
