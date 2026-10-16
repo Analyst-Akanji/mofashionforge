@@ -38,7 +38,7 @@ export default function PolicyPage({ policy }) {
             </p>
             {!data.faq && (
               <p style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#B8973A", margin: 0 }}>
-                Last updated {SETTINGS.lastUpdated}
+                Last updated {data.lastUpdated || SETTINGS.lastUpdated}
               </p>
             )}
           </div>

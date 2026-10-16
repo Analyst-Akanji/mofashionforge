@@ -15,8 +15,8 @@ export const BUSINESS = {
 
 export const SETTINGS = {
   lastUpdated: "15 October 2026",
-  productionTime: "5–9",                 // working days (from the Shop and Custom Orders pages)
-  deliveryTime: "2–5 working days after your piece is finished, depending on where you are",
+  productionTime: "7–14",                // working days, standard orders
+  deliveryTime: "2–5 working days",      // after the piece is completed and dispatched
   defectWindow: "48 hours",              // time to report damage or a fault after delivery
   cancelWindow: "24 hours",              // free cancellation, if making has not started
   refundTime: "7 working days",
@@ -143,55 +143,85 @@ export const POLICIES = {
     path: "/shipping",
     nav: "Shipping",
     title: "Shipping Policy",
+    lastUpdated: "16 October 2026",
     intro:
-      "Every Mo_FashionForge piece is handmade to order, so getting yours takes two stages: making it, then delivering it.",
+      "Every MO_FashionForge piece is thoughtfully handmade to order. Our shipping process includes two stages: production and delivery. Please review the details below to understand what to expect when placing your order.",
     sections: [
       {
-        heading: "Making your piece",
+        heading: "1. Production Time",
         body: [
-          `Standard pieces take ${S.productionTime} working days to make, counted from the day your order is confirmed and any payment due is received. Custom orders follow the timeline in your quote. Rush orders may be available at extra cost, so please ask before you order.`,
+          "Each piece is handmade with care to meet our quality standards.",
+          [
+            `Standard orders: Production takes approximately ${S.productionTime} working days from the date your order is confirmed and any required payment is received.`,
+            "Custom orders: Production timelines will be communicated in your order quotation and may vary depending on the design and complexity of the piece.",
+            "Rush orders: Expedited production may be available at an additional cost, subject to availability. Please contact us before placing your order to confirm eligibility and timing.",
+          ],
+          "Please note that production time is separate from delivery time.",
         ],
       },
       {
-        heading: "Delivery within Nigeria",
+        heading: "2. Delivery Within Nigeria",
         body: [
-          `We deliver by courier or dispatch rider. Delivery usually takes ${S.deliveryTime}. International delivery is available on request.`,
+          "We deliver orders within Nigeria through trusted courier services and dispatch riders.",
+          `Delivery typically takes ${S.deliveryTime} after your piece has been completed and dispatched. Actual delivery times may vary depending on your location and the delivery service used.`,
         ],
       },
       {
-        heading: "Delivery fees",
+        heading: "3. International Shipping",
         body: [
-          "Delivery fees depend on where you are and the size of your order. We confirm the fee with you before you pay.",
+          "International shipping is available upon request. Delivery timelines and shipping costs depend on the destination and the selected shipping service.",
+          "Please contact us before placing an international order to confirm availability, estimated delivery time, and shipping fees.",
+          "Any applicable import duties, customs charges, and taxes are the responsibility of the customer.",
         ],
       },
       {
-        heading: "Updates and tracking",
+        heading: "4. Shipping Fees",
         body: [
-          "We message you on WhatsApp or email when your piece is finished and when it is on its way, with tracking or rider details where available.",
+          "Shipping fees are calculated based on your delivery location, parcel size, and applicable courier charges.",
+          "Your shipping fee will be communicated and confirmed with you before payment. Any applicable shipping charges will be separate from the cost of your item unless otherwise stated.",
         ],
       },
       {
-        heading: "Your delivery details",
+        heading: "5. Order Updates and Tracking",
         body: [
-          "Please give a complete delivery address and a phone number you can answer on the day. If a delivery fails because the details are wrong or no one is available to receive it, you may be asked to cover the cost of re-delivery.",
+          "We will keep you informed about the progress of your order through WhatsApp or email.",
+          "You will receive updates when your piece is completed and when your order is dispatched. Tracking information or dispatch rider details will be provided where available.",
         ],
       },
       {
-        heading: "Delays",
+        heading: "6. Delivery Information",
         body: [
-          "Handmade work and courier schedules can sometimes run late. If we expect a delay, we will tell you as soon as we know.",
+          "To help ensure a smooth delivery, please provide:",
+          [
+            "Your full and accurate delivery address.",
+            "A valid phone number that can be reached on the delivery day.",
+            "Any additional directions needed to locate your address.",
+          ],
+          "Customers are responsible for ensuring that their delivery information is accurate and complete.",
+          "If delivery fails because of incorrect details, the recipient's unavailability, or other circumstances within the customer's control, additional redelivery charges may apply.",
         ],
       },
       {
-        heading: "International orders",
+        heading: "7. Delays and Unforeseen Circumstances",
         body: [
-          "Import duties, taxes and customs charges for international orders are the buyer's responsibility.",
+          "Although we make every effort to meet our estimated timelines, production or delivery may occasionally be delayed by unforeseen circumstances, including courier disruptions or other events beyond our control.",
+          "If we become aware of a significant delay, we will notify you as soon as reasonably possible and provide an updated estimate where available.",
+          "We appreciate your patience and understanding, as each MO_FashionForge piece is handmade with care.",
         ],
       },
       {
-        heading: "Damaged in transit",
+        heading: "8. Damaged Items During Delivery",
         body: [
-          `Please check your parcel when it arrives. If your piece is damaged, follow the steps in our Returns Policy within ${S.defectWindow}.`,
+          `Please inspect your parcel upon arrival. If your item arrives damaged, contact us and follow the procedures outlined in our Returns Policy within ${S.defectWindow} of delivery.`,
+          "Where possible, please provide clear photographs of the parcel and the damaged item to help us assess the issue.",
+          "For further information about eligible returns, exchanges, or damage claims, please refer to our Returns Policy.",
+        ],
+      },
+      {
+        heading: "9. Contact Us",
+        body: [
+          "If you have questions about production timelines, shipping fees, delivery updates, or international orders, please contact MO_FashionForge through the contact details provided on our website.",
+          "Thank you for choosing MO_FashionForge. We appreciate your support and look forward to delivering a piece made especially for you.",
         ],
       },
     ],
@@ -255,7 +285,7 @@ export const POLICIES = {
       },
       {
         q: "How long does an order take?",
-        a: `Standard pieces take ${S.productionTime} working days to make, plus delivery time. Custom orders take about the same, and your quote will confirm the exact timeline.`,
+        a: `Standard pieces take about ${S.productionTime} working days to make, plus delivery time. For custom orders, your quote will confirm the timeline.`,
         link: { to: "/shipping", label: "Read the Shipping Policy" },
       },
       {
@@ -286,7 +316,7 @@ export const POLICIES = {
       },
       {
         q: "Can I return a piece?",
-        a: "Pieces are made to order, so we cannot take returns for a change of mind. If something arrives damaged or faulty, tell us within 48 hours and we will put it right.",
+        a: `Pieces are made to order, so we cannot take returns for a change of mind. If something arrives damaged or faulty, tell us within ${S.defectWindow} and we will put it right.`,
         link: { to: "/returns", label: "Read the Returns Policy" },
       },
       {

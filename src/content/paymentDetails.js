@@ -5,8 +5,8 @@
 // customers can never be shown blank or placeholder account details.
 
 export const BANK = {
-  bankName: "OPAY BANK",
-  accountName: "Morayo O. Akinola",
+  bankName: "OPAY DIGITAL BANK",
+  accountName: "Karimot Morayo Hassan",
   accountNumber: "8185128390",
 };
 

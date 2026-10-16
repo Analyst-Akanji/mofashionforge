@@ -26,7 +26,7 @@ export default function Footer() {
           </div>
           <div>
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#B8973A", marginBottom: "16px", marginTop: 0 }}>Pages</p>
-            {[["About", "/about"], ["Gallery", "/gallery"], ["Custom Orders", "/custom-orders"], ["Contact", "/contact"]].map(([label, to]) => (
+            {[["About", "/about"], ["Gallery", "/gallery"], ["Size Guide", "/size-guide"], ["Custom Orders", "/custom-orders"], ["Contact", "/contact"]].map(([label, to]) => (
               <Link key={to} to={to} style={{ display: "block", fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.55)", textDecoration: "none", marginBottom: "10px" }}>{label}</Link>
             ))}
           </div>

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
 import { supabase } from "../../lib/supabase";
+import CategoryManager from "../../components/admin/CategoryManager";
 
 const fmt = (n) => `₦${Number(n || 0).toLocaleString("en-NG")}`;
-const CATEGORIES = ["earrings", "bucket_hats", "tops", "sweatshirts", "accessories", "limited"];
-const emptyForm = { name: "", category: "tops", price: "", description: "", stock_qty: 0, is_active: true, is_limited: false, images: [] };
+const emptyForm = { name: "", category: "", price: "", description: "", stock_qty: 0, is_active: true, is_limited: false, images: [] };
 
 const MAX_IMAGES = 4;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -45,8 +45,23 @@ export default function AdminProducts() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [originalImages, setOriginalImages] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [showCategories, setShowCategories] = useState(false);
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { refreshAll(); }, []);
+
+  async function fetchCategories() {
+    const { data, error: err } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
+    if (err) setError(`Couldn't load categories: ${err.message}`);
+    else setCategories(data || []);
+  }
+
+  // Used by the category manager: a rename, delete or "move products" changes both lists
+  async function refreshAll() {
+    await Promise.all([fetchCategories(), fetchProducts()]);
+  }
+
+  const categoryName = (slug) => categories.find((c) => c.slug === slug)?.name || (slug || "").replaceAll("_", " ");
 
   async function fetchProducts() {
     const { data, error: err } = await supabase.from("products").select("*").order("created_at", { ascending: false });
@@ -71,7 +86,7 @@ export default function AdminProducts() {
   function openNew() {
     if (showForm) discardUnsavedUploads();
     setError("");
-    setForm(emptyForm);
+    setForm({ ...emptyForm, category: categories[0]?.slug || "" });
     setOriginalImages([]);
     setEditId(null);
     setShowForm(true);
@@ -152,6 +167,7 @@ export default function AdminProducts() {
 
   async function saveProduct() {
     if (!form.name.trim()) { setError("Product name is required."); return; }
+    if (!form.category) { setError("Choose a category. Add one under \"Manage categories\" if the list is empty."); return; }
     const price = parseFloat(form.price);
     if (!Number.isFinite(price) || price <= 0) { setError("Enter a price greater than zero."); return; }
 
@@ -227,10 +243,19 @@ export default function AdminProducts() {
       <div style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
           <h1 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2rem", fontWeight: 400, color: "#0F0F0F", margin: 0 }}>Products</h1>
-          <button onClick={openNew} style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 20px" }}>
-            + Add Product
-          </button>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button onClick={() => setShowCategories((v) => !v)} aria-expanded={showCategories} style={{ background: "none", color: "#0F0F0F", border: "1px solid #E5E5E5", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 20px" }}>
+              {showCategories ? "Hide categories" : "Manage categories"}
+            </button>
+            <button onClick={openNew} style={{ background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", padding: "12px 20px" }}>
+              + Add Product
+            </button>
+          </div>
         </div>
+
+        {showCategories && (
+          <CategoryManager categories={categories} products={products} onChanged={refreshAll} />
+        )}
 
         {/* Product form */}
         {showForm && (
@@ -249,7 +274,11 @@ export default function AdminProducts() {
               <div>
                 <label style={labelStyle}>Category</label>
                 <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={inputStyle}>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c.replace("_", " ")}</option>)}
+                  {categories.length === 0 && !form.category && <option value="">No categories yet</option>}
+                  {form.category && !categories.some((c) => c.slug === form.category) && (
+                    <option value={form.category}>{categoryName(form.category)} (not in your categories list)</option>
+                  )}
+                  {categories.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
                 </select>
               </div>
               <div>
@@ -361,7 +390,7 @@ export default function AdminProducts() {
                       )}
                     </td>
                     <td style={{ padding: "12px 14px", fontFamily: "Inter, sans-serif", fontSize: "13px", fontWeight: 600, color: "#0F0F0F" }}>{p.name}</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6B6B6B", textTransform: "capitalize" }}>{p.category?.replace("_", " ")}</td>
+                    <td style={{ padding: "12px 14px", fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6B6B6B" }}>{categoryName(p.category)}</td>
                     <td style={{ padding: "12px 14px", fontFamily: "Inter, sans-serif", fontSize: "13px" }}>{fmt((p.price || 0) / 100)}</td>
                     <td style={{ padding: "12px 14px", fontFamily: "Inter, sans-serif", fontSize: "13px", textAlign: "center" }}>{p.stock_qty || 0}</td>
                     <td style={{ padding: "12px 14px" }}>

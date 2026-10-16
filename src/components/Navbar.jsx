@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingBag } from "lucide-react";
+import { useCart } from "../context/CartContext";
 
 const NAV_LINKS = [
   { label: "Shop",          to: "/shop" },
   { label: "Custom Orders", to: "/custom-orders" },
+  { label: "Size Guide",    to: "/size-guide" },
   { label: "Gallery",       to: "/gallery" },
   { label: "Blog", to: "/blog" },
   { label: "About",         to: "/about" },
@@ -16,6 +18,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const { count } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -66,7 +69,7 @@ export default function Navbar() {
         <ul style={{
           display: "flex",
           alignItems: "center",
-          gap: "32px",
+          gap: "24px",
           listStyle: "none",
           margin: 0,
           padding: 0,
@@ -92,13 +95,38 @@ export default function Navbar() {
         </ul>
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <button
-            aria-label="View cart"
-            style={{ background: "none", border: "none", cursor: "pointer", color: textColor, transition: "color 0.3s" }}
-            className="hide-mobile"
+          {/* Cart: goes to checkout, which lists the items and lets you change quantities */}
+          <Link
+            to="/checkout"
+            aria-label={count > 0 ? `View cart, ${count} item${count === 1 ? "" : "s"}` : "View cart"}
+            style={{ position: "relative", display: "flex", alignItems: "center", color: textColor, transition: "color 0.3s", padding: "4px" }}
           >
             <ShoppingBag size={20} />
-          </button>
+            {count > 0 && (
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  top: "-4px",
+                  right: "-6px",
+                  minWidth: "16px",
+                  height: "16px",
+                  padding: "0 4px",
+                  boxSizing: "border-box",
+                  borderRadius: "999px",
+                  background: "#B8973A",
+                  color: "#FAF8F3",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  lineHeight: "16px",
+                  textAlign: "center",
+                }}
+              >
+                {count > 9 ? "9+" : count}
+              </span>
+            )}
+          </Link>
           <Link
             to="/shop"
             style={{

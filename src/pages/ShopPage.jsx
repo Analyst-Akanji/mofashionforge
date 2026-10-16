@@ -1,68 +1,65 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { supabase } from "../lib/supabase";
 
-const FALLBACK_PRODUCTS = [
-  { id: "bag", name: "Crochet Tote Bag", category: "Accessories", price: 35000, description: "Handwoven crochet tote bag — durable, stylish, made to order.", images: ["/assets/bag-1.jpg", "/assets/bag-2.jpg", "/assets/bag-3.jpg"] },
-  { id: "gown", name: "Crochet Statement Gown", category: "Limited Edition", price: 85000, description: "A head-to-toe crochet statement piece — bold, artistic, one of a kind.", images: ["/assets/gown-1.jpg", "/assets/gown-2.jpg", "/assets/gown-3.jpg"] },
-  { id: "top-1", name: "Crochet Top I", category: "Tops", price: 28000, description: "Premium handcrafted crochet top — elegant and breathable.", images: ["/assets/top-1-a.jpg", "/assets/top-1-b.jpg", "/assets/top-1-c.jpg"] },
-  { id: "top-2", name: "Crochet Top II", category: "Tops", price: 28000, description: "Premium handcrafted crochet top — elegant and breathable.", images: ["/assets/top-2-a.jpg", "/assets/top-2-b.jpg", "/assets/top-2-c.jpg"] },
-  { id: "top-3", name: "Crochet Unisex Top", category: "Tops", price: 32000, description: "Bold unisex crochet top — wearable art for any body.", images: ["/assets/top-3-a.jpg", "/assets/top-3-b.jpg", "/assets/top-3-c.jpg"] },
-  { id: "sweatshirt", name: "Crochet Sweatshirt", category: "Sweatshirts", price: 45000, description: "Cosy luxury crochet sweatshirt — handcrafted for warmth and style.", images: ["/assets/sweatshirt-1.jpg", "/assets/sweatshirt-2.jpg", "/assets/sweatshirt-3.jpg"] },
-];
+const fmt = (n) => `₦${n.toLocaleString("en-NG")}`;
+const prettyCategory = (c) => (c || "").replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
 
-// TEMPORARY fallback: shown only if the products table is empty or can't be loaded.
-// Delete FALLBACK_PRODUCTS and normalizeFallback once the real products are added in the admin.
-const normalizeFallback = (p) => ({
-  id: p.id,
-  name: p.name,
-  description: p.description,
-  images: p.images,
-  price: p.price * 100, // the database stores kobo
-  is_limited: p.category === "Limited Edition",
-  category: p.category === "Limited Edition" ? "limited" : p.category.toLowerCase(),
-});
+// Database row -> what the shop components use. Prices are stored in kobo.
+function toShopProduct(row, nameBySlug = {}) {
+  // Legacy: a piece whose category is "limited" shows under the Limited Edition tab
+  const limitedCategory = row.category === "limited";
+  return {
+    id: row.id,
+    name: row.name,
+    category: limitedCategory ? "Limited Edition" : nameBySlug[row.category] || prettyCategory(row.category),
+    isLimited: !!row.is_limited || limitedCategory,
+    price: Math.round((row.price || 0) / 100),
+    description: row.description || "",
+    images: Array.isArray(row.images) ? row.images : [],
+  };
+}
 
-const CATEGORY_ORDER = ["tops", "sweatshirts", "accessories", "earrings", "bucket_hats"];
-const categoryRank = (c) => {
-  const i = CATEGORY_ORDER.indexOf(c);
-  return i === -1 ? 99 : i;
-};
-const prettyCategory = (c) => (c || "").replaceAll("_", " ").replace(/^\w/, (ch) => ch.toUpperCase());
-const isLimited = (p) => p.is_limited || p.category === "limited";
-// Prices are stored in kobo
-const fmt = (kobo) => `₦${(Number(kobo || 0) / 100).toLocaleString("en-NG")}`;
+function ImagePlaceholder() {
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "#3B4A3E", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "2rem", color: "rgba(250,248,243,0.3)", fontStyle: "italic" }}>MF</span>
+    </div>
+  );
+}
 
 function ProductCard({ product, onClick }) {
   const [activeImg, setActiveImg] = useState(0);
+  const count = product.images.length;
+
   useEffect(() => {
-    if (product.images.length < 2) return;
-    const t = setInterval(() => setActiveImg((p) => (p + 1) % product.images.length), 2500);
+    if (count < 2) return;
+    const t = setInterval(() => setActiveImg((p) => (p + 1) % count), 2500);
     return () => clearInterval(t);
-  }, [product.images.length]);
+  }, [count]);
 
   return (
     <div onClick={onClick} style={{ cursor: "pointer", background: "#F0EDE6", borderRadius: "2px", overflow: "hidden" }}>
       <div style={{ position: "relative", aspectRatio: "3/4", overflow: "hidden" }}>
-        {product.images.map((img, i) => (
-          <img key={i} src={img} alt={`${product.name} ${i + 1}`}
+        {count === 0 ? <ImagePlaceholder /> : product.images.map((img, i) => (
+          <img key={i} src={img} alt={`${product.name} ${i + 1}`} loading={i === 0 ? "eager" : "lazy"}
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: activeImg === i ? 1 : 0, transition: "opacity 0.8s ease-in-out" }}
           />
         ))}
-        {isLimited(product) && (
+        {product.isLimited && (
           <span style={{ position: "absolute", top: "12px", left: "12px", zIndex: 2, fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", background: "#B8973A", color: "#FAF8F3", padding: "4px 10px" }}>Limited</span>
         )}
-        <div style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", display: product.images.length > 1 ? "flex" : "none", gap: "5px", zIndex: 2 }}>
-          {product.images.map((_, i) => (
-            <span key={i} style={{ width: activeImg === i ? "16px" : "6px", height: "6px", borderRadius: "999px", background: activeImg === i ? "#FAF8F3" : "rgba(250,248,243,0.5)", transition: "all 0.3s ease", display: "block" }} />
-          ))}
-        </div>
+        {count > 1 && (
+          <div style={{ position: "absolute", bottom: "10px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "5px", zIndex: 2 }}>
+            {product.images.map((_, i) => (
+              <span key={i} style={{ width: activeImg === i ? "16px" : "6px", height: "6px", borderRadius: "999px", background: activeImg === i ? "#FAF8F3" : "rgba(250,248,243,0.5)", transition: "all 0.3s ease", display: "block" }} />
+            ))}
+          </div>
+        )}
       </div>
       <div style={{ padding: "14px" }}>
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#B8973A", margin: "0 0 4px" }}>{prettyCategory(product.category)}</p>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#B8973A", margin: "0 0 4px" }}>{product.category}</p>
         <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.1rem", fontWeight: 400, color: "#0F0F0F", margin: "0 0 4px" }}>{product.name}</h3>
         <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1rem", color: "#3B4A3E", margin: 0 }}>{fmt(product.price)}</p>
       </div>
@@ -72,9 +69,6 @@ function ProductCard({ product, onClick }) {
 
 function Lightbox({ product, onClose }) {
   const [mainImg, setMainImg] = useState(0);
-  const [added, setAdded] = useState(false);
-  const { addItem, buyNow } = useCart();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -94,63 +88,68 @@ function Lightbox({ product, onClose }) {
       >
         {/* LEFT — big image + thumbnails below */}
         <div style={{ background: "#F0EDE6", padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
-          {/* BIG image */}
           <div style={{ flex: 1 }}>
-            <img
-              src={product.images[mainImg]}
-              alt={product.name}
-              style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", objectPosition: "center", borderRadius: "2px", display: "block" }}
-            />
+            {product.images.length === 0 ? (
+              <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", borderRadius: "2px", overflow: "hidden" }}>
+                <ImagePlaceholder />
+              </div>
+            ) : (
+              <img
+                src={product.images[mainImg]}
+                alt={product.name}
+                style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", objectPosition: "center", borderRadius: "2px", display: "block" }}
+              />
+            )}
           </div>
-          {/* SMALL thumbnails */}
-          <div style={{ display: "flex", gap: "8px" }}>
-            {product.images.map((img, i) => (
-              <button
-                key={i}
-                onClick={() => setMainImg(i)}
-                style={{ flex: 1, padding: 0, border: mainImg === i ? "2px solid #B8973A" : "2px solid transparent", borderRadius: "2px", overflow: "hidden", cursor: "pointer", background: "none", transition: "border 0.2s" }}
-              >
-                <img
-                  src={img}
-                  alt={`View ${i + 1}`}
-                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", objectPosition: "center", display: "block", opacity: mainImg === i ? 1 : 0.6, transition: "opacity 0.2s" }}
-                />
-              </button>
-            ))}
-          </div>
+          {product.images.length > 1 && (
+            <div style={{ display: "flex", gap: "8px" }}>
+              {product.images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setMainImg(i)}
+                  style={{ flex: 1, padding: 0, border: mainImg === i ? "2px solid #B8973A" : "2px solid transparent", borderRadius: "2px", overflow: "hidden", cursor: "pointer", background: "none", transition: "border 0.2s" }}
+                >
+                  <img
+                    src={img}
+                    alt={`View ${i + 1}`}
+                    style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", objectPosition: "center", display: "block", opacity: mainImg === i ? 1 : 0.6, transition: "opacity 0.2s" }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* RIGHT — product info */}
         <div style={{ padding: "32px 28px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#B8973A" }}>{prettyCategory(product.category)}</span>
-              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "18px", color: "#6B6B6B", padding: "4px 8px", lineHeight: 1 }}>✕</button>
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#B8973A" }}>
+                {product.isLimited && product.category !== "Limited Edition" ? `${product.category} · Limited Edition` : product.category}
+              </span>
+              <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "18px", color: "#6B6B6B", padding: "4px 8px", lineHeight: 1 }}>✕</button>
             </div>
             <h2 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 400, color: "#0F0F0F", margin: "0 0 10px", lineHeight: 1.2 }}>{product.name}</h2>
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: "0 0 16px", lineHeight: 1.7 }}>{product.description}</p>
+            {product.description && (
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: "0 0 16px", lineHeight: 1.7, whiteSpace: "pre-line" }}>{product.description}</p>
+            )}
             <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.8rem", fontWeight: 500, color: "#3B4A3E", margin: "0 0 20px" }}>{fmt(product.price)}</p>
             <ul style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6B6B6B", lineHeight: 2, paddingLeft: "16px", margin: "0 0 24px" }}>
               <li>Handcrafted with premium yarn</li>
               <li>Made to order — allow 5–9 days</li>
               <li>Custom colours available on request</li>
-              <li>Contact Morayo for sizing guidance</li>
+              <li>Not sure of your size? <a href="/size-guide" style={{ color: "#B8973A" }}>See the size guide</a></li>
             </ul>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <button
-              onClick={() => { addItem(product); setAdded(true); }}
+              onClick={() => alert("Cart & checkout coming soon — Flutterwave integration in progress.")}
               style={{ width: "100%", background: "#0F0F0F", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "15px 24px" }}
             >
-              {added ? "Added ✓" : "Add to Cart"}
+              Add to Cart
             </button>
-            {added && (
-              <Link to="/checkout" style={{ textAlign: "center", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#3B4A3E", textDecoration: "none", padding: "6px 0" }}>
-                View cart and checkout →
-              </Link>
-            )}
             <button
-              onClick={() => { buyNow(product); navigate("/checkout"); }}
+              onClick={() => alert("Checkout coming soon — Flutterwave integration in progress.")}
               style={{ width: "100%", background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "15px 24px" }}
             >
               Buy Now
@@ -164,39 +163,55 @@ function Lightbox({ product, onClose }) {
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
+  const [categoryRows, setCategoryRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-      if (cancelled) return;
-      if (error || !data || data.length === 0) {
-        setProducts(FALLBACK_PRODUCTS.map(normalizeFallback));
+    async function fetchProducts() {
+      const [prodRes, catRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("id, name, category, price, description, images, is_limited")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false }),
+        supabase.from("categories").select("name, slug, sort_order").order("sort_order", { ascending: true }),
+      ]);
+      if (prodRes.error) {
+        setLoadError(true);
       } else {
-        setProducts(data.map((p) => ({ ...p, images: p.images || [] })));
+        // If the categories can't be read, the tabs fall back to whatever the products use
+        const cats = catRes.error ? [] : catRes.data || [];
+        const nameBySlug = Object.fromEntries(cats.map((c) => [c.slug, c.name]));
+        setCategoryRows(cats);
+        setProducts((prodRes.data || []).map((r) => toShopProduct(r, nameBySlug)));
       }
       setLoading(false);
     }
-    load();
-    return () => { cancelled = true; };
+    fetchProducts();
   }, []);
 
-  // Tabs come from the products themselves, so new categories appear automatically
-  const categoryTabs = [...new Set(products.map((p) => p.category).filter((c) => c && c !== "limited"))]
-    .sort((a, b) => categoryRank(a) - categoryRank(b));
-  const CATEGORIES = ["All", ...categoryTabs, ...(products.some(isLimited) ? ["limited_edition"] : [])];
-
+  // Tabs follow the order set in the admin, and only show categories that have active pieces
+  const usedNames = new Set(products.filter((p) => p.category !== "Limited Edition").map((p) => p.category));
+  const ordered = categoryRows.map((c) => c.name).filter((n) => usedNames.has(n));
+  const missing = [...usedNames].filter((n) => !ordered.includes(n)); // category not in the table (safety net)
+  const categories = [
+    "All",
+    ...ordered,
+    ...missing,
+    ...(products.some((p) => p.isLimited) ? ["Limited Edition"] : []),
+  ];
   const visible =
     filter === "All" ? products
-    : filter === "limited_edition" ? products.filter(isLimited)
+    : filter === "Limited Edition" ? products.filter((p) => p.isLimited)
     : products.filter((p) => p.category === filter);
+
+  // If the selected tab disappears (e.g. last piece in it was deactivated), fall back to All
+  useEffect(() => {
+    if (!categories.includes(filter)) setFilter("All");
+  }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -207,27 +222,34 @@ export default function ShopPage() {
 
         <div style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "0 24px", background: "#FAF8F3", position: "sticky", top: "72px", zIndex: 10 }}>
           <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", overflowX: "auto" }}>
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button key={cat} onClick={() => setFilter(cat)}
                 style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", padding: "18px 24px", background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap", color: filter === cat ? "#0F0F0F" : "#6B6B6B", borderBottom: filter === cat ? "2px solid #B8973A" : "2px solid transparent", transition: "color 0.2s" }}>
-                {prettyCategory(cat)}
+                {cat}
               </button>
             ))}
           </div>
         </div>
 
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "48px 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }} className="shop-product-grid">
-            {visible.map((product) => (
-              <ProductCard key={product.id} product={product} onClick={() => setSelected(product)} />
-            ))}
-          </div>
-          {loading && (
-            <div style={{ textAlign: "center", padding: "80px 0", fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B" }}>Loading...</div>
-          )}
-          {!loading && visible.length === 0 && (
+          {loading ? (
+            <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#6B6B6B", fontStyle: "italic", textAlign: "center", padding: "80px 0" }}>Loading the collection...</p>
+          ) : loadError ? (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
-              <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#6B6B6B" }}>No pieces in this category yet.</p>
+              <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#6B6B6B" }}>We couldn't load the collection just now.</p>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", marginTop: "12px" }}>Please refresh the page, or message Morayo on WhatsApp to see what's available.</p>
+            </div>
+          ) : visible.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "80px 0" }}>
+              <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#6B6B6B" }}>
+                {products.length === 0 ? "New pieces are on the way." : "No pieces in this category yet."}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }} className="shop-product-grid">
+              {visible.map((product) => (
+                <ProductCard key={product.id} product={product} onClick={() => setSelected(product)} />
+              ))}
             </div>
           )}
         </div>

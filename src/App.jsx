@@ -13,6 +13,7 @@ import ContactPage from "./pages/ContactPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import PolicyPage from "./pages/PolicyPage";
+import SizeGuidePage from "./pages/SizeGuidePage";
 import CheckoutPage from "./pages/CheckoutPage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/shipping" element={<PolicyPage policy="shipping" />} />
           <Route path="/returns" element={<PolicyPage policy="returns" />} />
           <Route path="/faq" element={<PolicyPage policy="faq" />} />
+          <Route path="/size-guide" element={<SizeGuidePage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
         </Route>
 
