@@ -121,7 +121,7 @@ export default function CheckoutPage() {
       customer_phone: form.phone.trim(),
       delivery_address: form.address.trim(),
       customer_notes: form.notes.trim() || null,
-      items: items.map(({ id, name, price, qty }) => ({ product_id: id, name, price, qty })),
+      items: items.map(({ id, productId, size, name, price, qty }) => ({ product_id: productId || id, size: size || null, name, price, qty })),
       subtotal: total, // the orders table requires it; no delivery fee is added at checkout yet
       total,
       status: "pending",
@@ -288,6 +288,7 @@ export default function CheckoutPage() {
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...heading, fontSize: "1.05rem", margin: "0 0 4px" }}>{item.name}</p>
+                  {item.size && <p style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6B6B6B", margin: "0 0 4px" }}>Size: {item.size}</p>}
                   <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#3B4A3E", margin: "0 0 10px" }}>{fmt(item.price)}</p>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <button type="button" aria-label={`Decrease quantity of ${item.name}`} onClick={() => setQty(item.id, item.qty - 1)} disabled={item.qty <= 1}

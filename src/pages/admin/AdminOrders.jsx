@@ -171,7 +171,7 @@ export default function AdminOrders() {
                   <p style={labelStyle}>Items</p>
                   {items.map((it, i) => (
                     <p key={i} style={{ ...valueStyle, marginBottom: "4px" }}>
-                      {it.qty} × {it.name} — {fmt(((it.price || 0) * (it.qty || 1)) / 100)}
+                      {it.qty} × {it.name}{it.size ? ` (${it.size})` : ""} — {fmt(((it.price || 0) * (it.qty || 1)) / 100)}
                     </p>
                   ))}
                 </div>

@@ -290,12 +290,12 @@ export const POLICIES = {
       },
       {
         q: "Can I order a custom piece?",
-        a: "Yes. Describe what you have in mind on the Custom Orders page. Morayo replies with a quote and timeline within 48 hours. Custom pricing starts from ₦25,000 and is quoted after your brief.",
+        a: "Yes. Describe what you have in mind on the Custom Orders page. Morayo replies with a quote and timeline within 48 hours. Custom pricing starts from ₦30,000 and is quoted after your brief.",
         link: { to: "/custom-orders", label: "Start a custom order" },
       },
       {
         q: "How does payment work for custom orders?",
-        a: "Custom orders need a 50% deposit upfront, with the other 50% due before delivery.",
+        a: "Custom orders need a 70% deposit upfront, with the remaining 30% due before delivery.",
       },
       {
         q: "Can I choose my own colours?",

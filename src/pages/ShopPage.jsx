@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { supabase } from "../lib/supabase";
@@ -15,10 +17,20 @@ function toShopProduct(row, nameBySlug = {}) {
     name: row.name,
     category: limitedCategory ? "Limited Edition" : nameBySlug[row.category] || prettyCategory(row.category),
     isLimited: !!row.is_limited || limitedCategory,
+    slug: row.category,
     price: Math.round((row.price || 0) / 100),
+    priceKobo: row.price || 0, // the cart keeps prices in kobo
+    sizes: Array.isArray(row.sizes) ? row.sizes : [],
     description: row.description || "",
     images: Array.isArray(row.images) ? row.images : [],
   };
+}
+
+// Which size chart on the Size Guide page fits this piece
+function chartFor(product) {
+  if (product.sizes.some((s) => /month/i.test(s)) || /baby/.test(product.slug || "")) return "baby";
+  if (product.slug === "dresses") return "dress";
+  return "adult";
 }
 
 function ImagePlaceholder() {
@@ -69,6 +81,26 @@ function ProductCard({ product, onClick }) {
 
 function Lightbox({ product, onClose }) {
   const [mainImg, setMainImg] = useState(0);
+  const { addItem, buyNow } = useCart();
+  const navigate = useNavigate();
+  const [size, setSize] = useState("");
+  const [sizeError, setSizeError] = useState(false);
+  const [added, setAdded] = useState(false);
+  const needsSize = product.sizes.length > 0;
+
+  const cartProduct = () => ({ id: product.id, name: product.name, price: product.priceKobo, images: product.images });
+
+  function handleAdd() {
+    if (needsSize && !size) { setSizeError(true); return; }
+    addItem(cartProduct(), 1, needsSize ? size : null);
+    setAdded(true);
+  }
+
+  function handleBuyNow() {
+    if (needsSize && !size) { setSizeError(true); return; }
+    buyNow(cartProduct(), needsSize ? size : null);
+    navigate("/checkout");
+  }
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -134,26 +166,51 @@ function Lightbox({ product, onClose }) {
               <p style={{ fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", margin: "0 0 16px", lineHeight: 1.7, whiteSpace: "pre-line" }}>{product.description}</p>
             )}
             <p style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.8rem", fontWeight: 500, color: "#3B4A3E", margin: "0 0 20px" }}>{fmt(product.price)}</p>
+            {needsSize && (
+              <div role="group" aria-label="Choose a size" style={{ margin: "0 0 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#6B6B6B" }}>Size</span>
+                  <a href={`/size-guide?chart=${chartFor(product)}`} target="_blank" rel="noreferrer" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#B8973A" }}>Size guide ↗</a>
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {product.sizes.map((sz) => (
+                    <button key={sz} type="button" aria-pressed={size === sz}
+                      onClick={() => { setSize(sz); setSizeError(false); setAdded(false); }}
+                      style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", padding: "10px 16px", borderRadius: "2px", cursor: "pointer", border: size === sz ? "1px solid #0F0F0F" : "1px solid #D9D5CB", background: size === sz ? "#0F0F0F" : "#fff", color: size === sz ? "#FAF8F3" : "#1A1A1A" }}>
+                      {sz}
+                    </button>
+                  ))}
+                </div>
+                {sizeError && <p role="alert" style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#DC2626", margin: "8px 0 0" }}>Please choose a size first.</p>}
+              </div>
+            )}
             <ul style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#6B6B6B", lineHeight: 2, paddingLeft: "16px", margin: "0 0 24px" }}>
               <li>Handcrafted with premium yarn</li>
-              <li>Made to order — allow 5–9 days</li>
+              <li>Made to order — allow 7–14 working days</li>
               <li>Custom colours available on request</li>
               <li>Not sure of your size? <a href="/size-guide" style={{ color: "#B8973A" }}>See the size guide</a></li>
             </ul>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <button
-              onClick={() => alert("Cart & checkout coming soon — Flutterwave integration in progress.")}
+              onClick={handleAdd}
               style={{ width: "100%", background: "#0F0F0F", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "15px 24px" }}
             >
-              Add to Cart
+              {added ? "Added ✓" : "Add to Cart"}
             </button>
             <button
-              onClick={() => alert("Checkout coming soon — Flutterwave integration in progress.")}
+              onClick={handleBuyNow}
               style={{ width: "100%", background: "#B8973A", color: "#FAF8F3", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "15px 24px" }}
             >
               Buy Now
             </button>
+            {added && (
+              <p role="status" style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#3B4A3E", margin: "4px 0 0", textAlign: "center" }}>
+                Added to your cart.{" "}
+                <button type="button" onClick={() => navigate("/checkout")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#B8973A", textDecoration: "underline", fontFamily: "inherit", fontSize: "inherit" }}>View cart</button>
+                {" "}or keep browsing.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -174,7 +231,7 @@ export default function ShopPage() {
       const [prodRes, catRes] = await Promise.all([
         supabase
           .from("products")
-          .select("id, name, category, price, description, images, is_limited")
+          .select("id, name, category, price, description, images, is_limited, sizes")
           .eq("is_active", true)
           .order("created_at", { ascending: false }),
         supabase.from("categories").select("name, slug, sort_order").order("sort_order", { ascending: true }),

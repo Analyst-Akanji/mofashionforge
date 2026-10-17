@@ -72,10 +72,10 @@ export default function CustomOrdersPage() {
               <div style={{ background: "#0F0F0F", padding: "32px", borderRadius: "2px", marginBottom: "24px" }}>
                 <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1.5rem", color: "#FAF8F3", margin: "0 0 20px" }}>Timeline & Pricing</h3>
                 {[
-                  { label: "Production time", value: "5–9 working days" },
-                  { label: "Pricing starts from", value: "₦25,000 — quoted after brief" },
+                  { label: "Production time", value: "Confirmed in your quote" },
+                  { label: "Pricing starts from", value: "₦30,000 — quoted after brief" },
                   { label: "Rush orders", value: "Available at additional cost" },
-                  { label: "Deposit", value: "50% upfront, 50% before delivery" },
+                  { label: "Deposit", value: "70% upfront, 30% before delivery" },
                 ].map((row) => (
                   <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid rgba(250,248,243,0.08)", flexWrap: "wrap", gap: "8px" }}>
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "rgba(250,248,243,0.5)" }}>{row.label}</span>

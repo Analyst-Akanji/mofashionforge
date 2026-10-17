@@ -4,7 +4,14 @@ import { supabase } from "../../lib/supabase";
 import CategoryManager from "../../components/admin/CategoryManager";
 
 const fmt = (n) => `₦${Number(n || 0).toLocaleString("en-NG")}`;
-const emptyForm = { name: "", category: "", price: "", description: "", stock_qty: 0, is_active: true, is_limited: false, images: [] };
+const SIZE_GROUPS = [
+  { label: "Adult sizes", sizes: ["XS", "S", "M", "L", "XL", "XXL"] },
+  { label: "Baby sizes", sizes: ["0–6 months", "6–12 months", "12–18 months", "18–24 months"] },
+  { label: "Other", sizes: ["One size"] },
+];
+const ALL_SIZES = SIZE_GROUPS.flatMap((g) => g.sizes);
+
+const emptyForm = { name: "", category: "", price: "", description: "", stock_qty: 0, is_active: true, is_limited: false, images: [], sizes: [] };
 
 const MAX_IMAGES = 4;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -105,6 +112,7 @@ export default function AdminProducts() {
       is_active: p.is_active,
       is_limited: p.is_limited,
       images,
+      sizes: p.sizes || [],
     });
     setOriginalImages(images);
     setEditId(p.id);
@@ -182,6 +190,7 @@ export default function AdminProducts() {
       is_active: form.is_active,
       is_limited: form.is_limited,
       images: form.images,
+      sizes: ALL_SIZES.filter((sz) => form.sizes.includes(sz)), // keeps XL before XXL, etc.
       updated_at: new Date().toISOString(),
     };
 
@@ -288,6 +297,31 @@ export default function AdminProducts() {
               <div style={{ gridColumn: "1 / -1" }}>
                 <label style={labelStyle}>Description</label>
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} style={{ ...inputStyle, resize: "vertical" }} placeholder="Brief description of the piece..." />
+              </div>
+
+              {/* Sizes */}
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={labelStyle}>Sizes available</label>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6B6B6B", margin: "0 0 10px" }}>
+                  Tick the sizes this piece comes in. Customers must pick one before ordering. Leave all unticked for pieces with no sizes, like bags.
+                </p>
+                {SIZE_GROUPS.map((group) => (
+                  <div key={group.label} style={{ marginBottom: "10px" }}>
+                    <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", color: "#6B6B6B", margin: "0 0 6px" }}>{group.label}</p>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {group.sizes.map((sz) => {
+                        const on = form.sizes.includes(sz);
+                        return (
+                          <button key={sz} type="button" aria-pressed={on}
+                            onClick={() => setForm((prev) => ({ ...prev, sizes: prev.sizes.includes(sz) ? prev.sizes.filter((x) => x !== sz) : [...prev.sizes, sz] }))}
+                            style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", padding: "8px 14px", borderRadius: "2px", cursor: "pointer", border: on ? "1px solid #0F0F0F" : "1px solid #E5E5E5", background: on ? "#0F0F0F" : "#fff", color: on ? "#FAF8F3" : "#1A1A1A" }}>
+                            {sz}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Image upload */}

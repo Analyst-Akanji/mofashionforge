@@ -26,18 +26,25 @@ export function CartProvider({ children }) {
     }
   }, [items]);
 
-  const addItem = useCallback((product, qty = 1) => {
+  // A cart line is a piece plus a size, so the same top in L and in XL are two separate lines.
+  // `id` is the line id (used by setQty/removeItem); `productId` is the real product id.
+  const lineIdFor = (product, size) => (size ? `${product.id}::${size}` : product.id);
+
+  const addItem = useCallback((product, qty = 1, size = null) => {
+    const lineId = lineIdFor(product, size);
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id);
+      const existing = prev.find((i) => i.id === lineId);
       if (existing) {
         return prev.map((i) =>
-          i.id === product.id ? { ...i, qty: Math.min(MAX_QTY, i.qty + qty) } : i
+          i.id === lineId ? { ...i, qty: Math.min(MAX_QTY, i.qty + qty) } : i
         );
       }
       return [
         ...prev,
         {
-          id: product.id,
+          id: lineId,
+          productId: product.id,
+          size: size || null,
           name: product.name,
           price: product.price,
           image: product.images?.[0] || null,
@@ -48,14 +55,17 @@ export function CartProvider({ children }) {
   }, []);
 
   // "Buy Now": make sure the piece is in the cart (keeps its quantity if already there).
-  const buyNow = useCallback((product) => {
+  const buyNow = useCallback((product, size = null) => {
+    const lineId = lineIdFor(product, size);
     setItems((prev) =>
-      prev.some((i) => i.id === product.id)
+      prev.some((i) => i.id === lineId)
         ? prev
         : [
             ...prev,
             {
-              id: product.id,
+              id: lineId,
+              productId: product.id,
+              size: size || null,
               name: product.name,
               price: product.price,
               image: product.images?.[0] || null,
