@@ -36,7 +36,7 @@ export default function AdminOverview() {
       ]);
 
       const orders = ordersRes.data || [];
-      const revenue = orders.filter(o => o.status !== "cancelled").reduce((sum, o) => sum + (o.total || 0), 0);
+      const revenue = orders.filter(o => ["paid", "processing", "shipped", "delivered"].includes(o.status)).reduce((sum, o) => sum + (o.total || 0), 0);
 
       setStats({
         orders: orders.length,

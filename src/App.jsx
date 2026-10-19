@@ -15,6 +15,7 @@ import BlogPostPage from "./pages/BlogPostPage";
 import PolicyPage from "./pages/PolicyPage";
 import SizeGuidePage from "./pages/SizeGuidePage";
 import CheckoutPage from "./pages/CheckoutPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/faq" element={<PolicyPage policy="faq" />} />
           <Route path="/size-guide" element={<SizeGuidePage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout/success" element={<PaymentSuccessPage />} />
         </Route>
 
         {/* Admin login is the only admin page that doesn't need a session */}

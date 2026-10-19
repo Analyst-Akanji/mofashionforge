@@ -158,7 +158,9 @@ export default function AdminOrders() {
                 { label: "Phone", value: selected.customer_phone },
                 { label: "Delivery Address", value: selected.delivery_address },
                 { label: "Total", value: fmt((selected.total || 0) / 100) },
+                { label: "Payment Method", value: selected.payment_method === "paystack" ? "Paystack (online)" : selected.receipt_path ? "Bank transfer" : "—" },
                 { label: "Payment Ref", value: selected.payment_ref || "—" },
+                ...(selected.paid_at ? [{ label: "Paid At", value: new Date(selected.paid_at).toLocaleString("en-NG") }] : []),
               ].map((row) => (
                 <div key={row.label} style={{ marginBottom: "12px" }}>
                   <p style={labelStyle}>{row.label}</p>
@@ -188,7 +190,13 @@ export default function AdminOrders() {
               <div style={{ borderTop: "1px solid #F0F0F0", paddingTop: "16px", marginTop: "16px" }}>
                 <p style={labelStyle}>Payment Receipt</p>
                 {!selected.receipt_path ? (
-                  <p style={{ ...valueStyle, color: "#6B6B6B" }}>No receipt uploaded.</p>
+                  <p style={{ ...valueStyle, color: selected.payment_method === "paystack" && selected.status === "pending" ? "#B45309" : "#6B6B6B" }}>
+                    {selected.payment_method === "paystack"
+                      ? selected.status === "pending"
+                        ? "Waiting for the customer to pay on Paystack. Don't start this piece until the status shows Paid."
+                        : "Paid online with Paystack. No receipt needed."
+                      : "No receipt uploaded."}
+                  </p>
                 ) : receiptUrl ? (
                   <div>
                     {receiptIsImage && (

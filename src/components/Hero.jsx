@@ -1,27 +1,37 @@
 import useImageRotator from "../hooks/useImageRotator";
 
-// Replace these with Mo's real woven photography before launch.
-// Keep exactly 3 images — the rotator and dots below assume 3.
+// Each image has a focus point ("x% y%") that decides which part stays visible when the photo is
+// cropped to fill the screen. The first number is left-to-right, the second is top-to-bottom:
+//   y = 0%  -> keep the TOP of the photo (heads, faces)
+//   y = 50% -> keep the middle (the default)
+//   y = 100% -> keep the BOTTOM
+// If a head is still cut off, make y smaller. If too much empty space shows above, make it bigger.
 const HERO_IMAGES = [
-  "/assets/hero-1.jpg",
-  "/assets/hero-2.jpg",
-  "/assets/hero-3.jpg",
+  { src: "/assets/hero-1.jpg", position: "50% 3%" },  // tall full-length photo: keep the very top so her head shows
+  { src: "/assets/hero-2.jpg", position: "50% 25%" }, // seated photo: her head sits in the upper third
+  { src: "/assets/hero-3.jpg", position: "50% 50%" },
+  { src: "/assets/hero-4.jpg", position: "50% 50%" },
+  { src: "/assets/hero-5.jpg", position: "50% 50%" },
 ];
 
 export default function Hero() {
-  const activeIndex = useImageRotator(HERO_IMAGES, 5000);
+  const activeIndex = useImageRotator(
+    HERO_IMAGES.map((img) => img.src),
+    5000
+  );
 
   return (
     <section
       id="top"
       className="relative h-screen min-h-[640px] w-full overflow-hidden"
     >
-      {HERO_IMAGES.map((src, i) => (
+      {HERO_IMAGES.map((img, i) => (
         <img
-          key={src}
-          src={src}
+          key={img.src}
+          src={img.src}
           alt="Mo_FashionForge handwoven crochet piece"
-          className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ease-in-out ${
+          style={{ objectPosition: img.position }}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
             i === activeIndex ? "opacity-100" : "opacity-0"
           }`}
         />
