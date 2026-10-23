@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useCart } from "../context/CartContext";
@@ -6,9 +6,6 @@ import { supabase } from "../lib/supabase";
 import { compressImage } from "../lib/compressImage";
 import { BUSINESS } from "../content/policyContent";
 import { BANK, CHECKOUT } from "../content/paymentDetails";
-
-// Online payments (Paystack) stay hidden until this is "true" in the hosting environment (VITE_PAYSTACK_ENABLED)
-const PAYSTACK_ENABLED = import.meta.env.VITE_PAYSTACK_ENABLED === "true";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
@@ -48,18 +45,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState("");
   const [done, setDone] = useState(null); // { orderRef, total }
-  const [method, setMethod] = useState(PAYSTACK_ENABLED ? "paystack" : "transfer");
 
   const paymentReady = Boolean(BANK.accountNumber);
-  const online = PAYSTACK_ENABLED && method === "paystack";
-  const step = PAYSTACK_ENABLED ? 1 : 0; // the payment-method card adds one step
-
-  // If the customer comes back with the browser's Back button, don't leave the button stuck on "Taking you to Paystack..."
-  useEffect(() => {
-    const onShow = (e) => { if (e.persisted) setSaving(false); };
-    window.addEventListener("pageshow", onShow);
-    return () => window.removeEventListener("pageshow", onShow);
-  }, []);
 
   async function copy(text, key) {
     try {
@@ -83,28 +70,6 @@ export default function CheckoutPage() {
     setFile(f);
   }
 
-  // Online payment: the server works out the price from the database, saves the order and returns a
-  // Paystack payment link. The order is marked paid automatically once Paystack confirms the payment.
-  async function payOnline() {
-    setSaving(true);
-    const { data, error: fnErr } = await supabase.functions.invoke("paystack-init", {
-      body: {
-        customer: { name: form.name, email: form.email, phone: form.phone, address: form.address },
-        notes: form.notes,
-        items: items.map((i) => ({ product_id: i.productId || i.id, size: i.size || null, qty: i.qty })),
-      },
-    });
-    if (fnErr || !data?.authorization_url) {
-      let message = "";
-      try { message = (await fnErr?.context?.json())?.error || ""; } catch { /* no readable message */ }
-      console.error("Online payment could not start:", fnErr?.message || data);
-      setError(message || "We couldn't start the online payment. Please try again, or pay by bank transfer instead.");
-      setSaving(false);
-      return;
-    }
-    window.location.assign(data.authorization_url); // the cart stays saved until the payment is confirmed
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving || !items.length) return;
@@ -112,10 +77,6 @@ export default function CheckoutPage() {
 
     if (form.phone.replace(/\D/g, "").length < 10) {
       setError("Please enter a valid phone / WhatsApp number.");
-      return;
-    }
-    if (online) {
-      await payOnline();
       return;
     }
     if (!file) {
@@ -127,15 +88,7 @@ export default function CheckoutPage() {
     const orderRef = makeOrderRef();
 
     // 1) Upload the receipt (private bucket)
-    // If shrinking the file fails for any reason (e.g. a PDF), upload the original instead
-    let blob = file;
-    let ext = file.name.split(".").pop().toLowerCase();
-    let type = file.type;
-    try {
-      ({ blob, ext, type } = await compressImage(file, { maxSize: 2000, quality: 0.9, minBytes: 1.5 * 1024 * 1024 }));
-    } catch (err) {
-      console.error("Receipt compression failed, uploading the original file:", err);
-    }
+    const { blob, ext, type } = await compressImage(file, { maxSize: 2000, quality: 0.9, minBytes: 1.5 * 1024 * 1024 });
     if (blob.size > MAX_RECEIPT_BYTES) {
       setError("That receipt file is too large (max 5 MB). Please upload a smaller one or a screenshot.");
       setSaving(false);
@@ -160,8 +113,8 @@ export default function CheckoutPage() {
       customer_phone: form.phone.trim(),
       delivery_address: form.address.trim(),
       customer_notes: form.notes.trim() || null,
-      items: items.map(({ id, productId, size, name, price, qty }) => ({ product_id: productId || id, size: size || null, name, price, qty })),
-      subtotal: total, // the orders table requires it; no delivery fee is added at checkout yet
+      items: items.map(({ id, name, price, qty }) => ({ product_id: id, name, price, qty })),
+      subtotal: total, // kobo, same as total (delivery fee is confirmed separately)
       total,
       status: "pending",
       receipt_path: receiptPath,
@@ -189,7 +142,7 @@ export default function CheckoutPage() {
           <p style={{ ...bodyText, margin: "0 0 24px" }}>
             Your order <strong style={{ color: "#0F0F0F" }}>{done.orderRef}</strong> ({fmt(done.total)}) is in. Morayo will check your payment and confirm {CHECKOUT.verificationTime} by WhatsApp or email.
           </p>
-          <p style={{ ...bodyText, margin: "0 0 32px" }}>Please keep your order reference handy in case you need to reach us.</p>
+          <p style={{ ...bodyText, margin: "0 0 32px" }}>We're also emailing a confirmation to {form.email}. If it doesn't arrive in a few minutes, check your spam folder. Please keep your order reference handy in case you need to reach us.</p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <a href={`${BUSINESS.whatsappUrl}?text=${waText}`} target="_blank" rel="noreferrer"
               style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", background: "#0F0F0F", color: "#FAF8F3", padding: "14px 22px", textDecoration: "none" }}>
@@ -266,37 +219,10 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {PAYSTACK_ENABLED && (
-              <div style={card}>
-                <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 16px" }}>2. How would you like to pay?</h2>
-                <div role="radiogroup" aria-label="Payment method" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {[
-                    { key: "paystack", title: "Pay online", text: "Card, bank transfer or other options on Paystack's secure page. Your order is confirmed automatically." },
-                    { key: "transfer", title: "Bank transfer, then upload a receipt", text: "Transfer manually and upload your receipt. Morayo confirms it by hand." },
-                  ].map((opt) => (
-                    <label key={opt.key} style={{ display: "flex", gap: "12px", alignItems: "flex-start", padding: "14px 16px", border: method === opt.key ? "1px solid #0F0F0F" : "1px solid #D9D5CB", borderRadius: "2px", cursor: "pointer", background: method === opt.key ? "#FAF8F3" : "#fff" }}>
-                      <input type="radio" name="payment-method" checked={method === opt.key} onChange={() => { setMethod(opt.key); setError(""); }} style={{ marginTop: "4px" }} />
-                      <span>
-                        <span style={{ display: "block", fontFamily: "Inter, sans-serif", fontSize: "14px", fontWeight: 600, color: "#0F0F0F" }}>{opt.title}</span>
-                        <span style={{ display: "block", ...bodyText, fontSize: "13px" }}>{opt.text}</span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-                {online && (
-                  <p style={{ ...bodyText, fontSize: "13px", margin: "16px 0 0" }}>
-                    You'll pay <strong style={{ color: "#0F0F0F" }}>{fmt(total)}</strong> on Paystack's secure page, and we never see your card details. {CHECKOUT.deliveryNote}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {!online && (
-            <>
             <div style={card}>
-              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>{2 + step}. Pay by bank transfer</h2>
+              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>2. Pay by bank transfer</h2>
               <p style={{ ...bodyText, margin: "0 0 20px" }}>
-                Transfer exactly <strong style={{ color: "#0F0F0F" }}>{fmt(total)}</strong> to the account below, then upload your receipt in step {3 + step}.
+                Transfer exactly <strong style={{ color: "#0F0F0F" }}>{fmt(total)}</strong> to the account below, then upload your receipt in step 3.
               </p>
               {paymentReady ? (
                 <div style={{ background: "#0F0F0F", padding: "8px 24px", borderRadius: "2px" }}>
@@ -322,7 +248,7 @@ export default function CheckoutPage() {
             </div>
 
             <div style={card}>
-              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>{3 + step}. Upload your receipt</h2>
+              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>3. Upload your receipt</h2>
               <p style={{ ...bodyText, margin: "0 0 16px" }}>A screenshot or PDF of your transfer confirmation (JPG, PNG, WebP or PDF, up to 5 MB).</p>
               <label htmlFor="f-receipt"
                 style={{ display: "block", border: "1px dashed #B8973A", padding: "24px", textAlign: "center", cursor: "pointer", borderRadius: "2px", background: "#FAF8F3", fontFamily: "Inter, sans-serif", fontSize: "13px", color: file ? "#0F0F0F" : "#6B6B6B" }}>
@@ -331,8 +257,6 @@ export default function CheckoutPage() {
               <input id="f-receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
                 onChange={handleFile} style={{ position: "absolute", width: "1px", height: "1px", opacity: 0, overflow: "hidden" }} />
             </div>
-            </>
-            )}
 
             {error && (
               <p role="alert" style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#B91C1C", background: "#FEF2F2", border: "1px solid #FECACA", padding: "12px 16px", borderRadius: "2px", margin: "0 0 16px" }}>
@@ -340,9 +264,9 @@ export default function CheckoutPage() {
               </p>
             )}
 
-            <button type="submit" disabled={saving || (!online && !paymentReady)}
-              style={{ width: "100%", background: "#B8973A", color: "#FAF8F3", border: "none", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", cursor: saving || (!online && !paymentReady) ? "not-allowed" : "pointer", opacity: saving || (!online && !paymentReady) ? 0.6 : 1 }}>
-              {saving ? (online ? "Taking you to Paystack..." : "Submitting...") : online ? `Pay ${fmt(total)} securely` : "Submit order & receipt"}
+            <button type="submit" disabled={saving || !paymentReady}
+              style={{ width: "100%", background: "#B8973A", color: "#FAF8F3", border: "none", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", cursor: saving || !paymentReady ? "not-allowed" : "pointer", opacity: saving || !paymentReady ? 0.6 : 1 }}>
+              {saving ? "Submitting..." : "Submit order & receipt"}
             </button>
           </div>
 
@@ -356,7 +280,6 @@ export default function CheckoutPage() {
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ ...heading, fontSize: "1.05rem", margin: "0 0 4px" }}>{item.name}</p>
-                  {item.size && <p style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6B6B6B", margin: "0 0 4px" }}>Size: {item.size}</p>}
                   <p style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#3B4A3E", margin: "0 0 10px" }}>{fmt(item.price)}</p>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <button type="button" aria-label={`Decrease quantity of ${item.name}`} onClick={() => setQty(item.id, item.qty - 1)} disabled={item.qty <= 1}
@@ -374,7 +297,7 @@ export default function CheckoutPage() {
               <span style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B" }}>Total to pay</span>
               <span style={{ ...heading, fontSize: "1.8rem", fontWeight: 500, color: "#3B4A3E" }}>{fmt(total)}</span>
             </div>
-            <p style={{ ...bodyText, fontSize: "12px", margin: "10px 0 0" }}>Made to order. Allow 7–14 working days after your payment is confirmed.</p>
+            <p style={{ ...bodyText, fontSize: "12px", margin: "10px 0 0" }}>Made to order. Allow 5–9 working days after your payment is confirmed.</p>
           </aside>
         </div>
       </form>
