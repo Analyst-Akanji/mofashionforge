@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useCart } from "../context/CartContext";
@@ -15,6 +15,8 @@ const labelStyle = { fontFamily: "Inter, sans-serif", fontSize: "11px", letterSp
 const inputStyle = { width: "100%", background: "#fff", border: "1px solid #D9D5CB", color: "#0F0F0F", fontFamily: "Inter, sans-serif", fontSize: "14px", padding: "14px 16px", outline: "none", borderRadius: "2px", boxSizing: "border-box" };
 const card = { background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: "2px", padding: "28px", marginBottom: "24px" };
 const bodyText = { fontFamily: "Inter, sans-serif", fontSize: "14px", color: "#6B6B6B", lineHeight: 1.7 };
+
+const PAYSTACK_ENABLED = import.meta.env.VITE_PAYSTACK_ENABLED === "true";
 
 const fmt = (kobo) => `₦${(Number(kobo || 0) / 100).toLocaleString("en-NG")}`;
 const makeOrderRef = () =>
@@ -46,7 +48,16 @@ export default function CheckoutPage() {
   const [copied, setCopied] = useState("");
   const [done, setDone] = useState(null); // { orderRef, total }
 
-  const paymentReady = Boolean(BANK.accountNumber);
+  const [method, setMethod] = useState(PAYSTACK_ENABLED ? "paystack" : "transfer");
+  const online = PAYSTACK_ENABLED && method === "paystack";
+  const paymentReady = online || Boolean(BANK.accountNumber);
+
+  // If the customer taps Back from Paystack, the page can be restored mid-"redirecting"
+  useEffect(() => {
+    const onShow = (e) => { if (e.persisted) setSaving(false); };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
 
   async function copy(text, key) {
     try {
@@ -79,6 +90,29 @@ export default function CheckoutPage() {
       setError("Please enter a valid phone / WhatsApp number.");
       return;
     }
+    // Online payment: the paystack-init function re-prices the cart from the products table,
+    // saves the order as pending, and returns a Paystack link. We only send ids, sizes and quantities.
+    if (online) {
+      setSaving(true);
+      const { data, error: fnErr } = await supabase.functions.invoke("paystack-init", {
+        body: {
+          customer: { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), address: form.address.trim() },
+          notes: form.notes.trim(),
+          items: items.map((i) => ({ product_id: i.productId, size: i.size, qty: i.qty })),
+        },
+      });
+      if (fnErr || !data?.authorization_url) {
+        let msg = "";
+        try { msg = (await fnErr?.context?.json?.())?.error || ""; } catch { /* ignore */ }
+        console.error("Paystack init failed:", fnErr?.message, msg);
+        setError(msg || `We couldn't start the online payment. Please try again, or pay by bank transfer, or message Morayo on WhatsApp (${BUSINESS.whatsapp}).`);
+        setSaving(false);
+        return;
+      }
+      window.location.href = data.authorization_url; // cart is cleared on the success page, once payment is confirmed
+      return;
+    }
+
     if (!file) {
       setError("Please upload your payment receipt.");
       return;
@@ -113,7 +147,7 @@ export default function CheckoutPage() {
       customer_phone: form.phone.trim(),
       delivery_address: form.address.trim(),
       customer_notes: form.notes.trim() || null,
-      items: items.map(({ id, name, price, qty }) => ({ product_id: id, name, price, qty })),
+      items: items.map(({ productId, size, name, price, qty }) => ({ product_id: productId, size, name, price, qty })),
       subtotal: total, // kobo, same as total (delivery fee is confirmed separately)
       total,
       status: "pending",
@@ -220,11 +254,27 @@ export default function CheckoutPage() {
             </div>
 
             <div style={card}>
-              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>2. Pay by bank transfer</h2>
+              <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>2. {PAYSTACK_ENABLED ? "Payment" : "Pay by bank transfer"}</h2>
+              {PAYSTACK_ENABLED && (
+                <div style={{ display: "flex", gap: "10px", margin: "0 0 20px", flexWrap: "wrap" }}>
+                  {[["paystack", "Pay online (card / transfer / USSD)"], ["transfer", "Bank transfer + receipt"]].map(([key, label]) => (
+                    <button key={key} type="button" onClick={() => { setMethod(key); setError(""); }}
+                      style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.06em", padding: "12px 16px", cursor: "pointer", borderRadius: "2px", border: "1px solid #B8973A", background: method === key ? "#B8973A" : "transparent", color: method === key ? "#FAF8F3" : "#B8973A" }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {online ? (
+                <p style={{ ...bodyText, margin: 0 }}>
+                  You'll pay <strong style={{ color: "#0F0F0F" }}>{fmt(total)}</strong> securely on Paystack with your card, bank transfer or USSD. You'll come back here when it's done and Morayo is notified automatically. No receipt upload needed.
+                </p>
+              ) : (
+              <>
               <p style={{ ...bodyText, margin: "0 0 20px" }}>
                 Transfer exactly <strong style={{ color: "#0F0F0F" }}>{fmt(total)}</strong> to the account below, then upload your receipt in step 3.
               </p>
-              {paymentReady ? (
+              {BANK.accountNumber ? (
                 <div style={{ background: "#0F0F0F", padding: "8px 24px", borderRadius: "2px" }}>
                   {BANK.bankName && <DetailRow label="Bank" value={BANK.bankName} />}
                   {BANK.accountName && <DetailRow label="Account name" value={BANK.accountName} />}
@@ -244,9 +294,12 @@ export default function CheckoutPage() {
                   </a>
                 </div>
               )}
+              </>
+              )}
               <p style={{ ...bodyText, fontSize: "13px", margin: "16px 0 0" }}>{CHECKOUT.deliveryNote}</p>
             </div>
 
+            {!online && (
             <div style={card}>
               <h2 style={{ ...heading, fontSize: "1.5rem", margin: "0 0 8px" }}>3. Upload your receipt</h2>
               <p style={{ ...bodyText, margin: "0 0 16px" }}>A screenshot or PDF of your transfer confirmation (JPG, PNG, WebP or PDF, up to 5 MB).</p>
@@ -257,6 +310,7 @@ export default function CheckoutPage() {
               <input id="f-receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
                 onChange={handleFile} style={{ position: "absolute", width: "1px", height: "1px", opacity: 0, overflow: "hidden" }} />
             </div>
+            )}
 
             {error && (
               <p role="alert" style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#B91C1C", background: "#FEF2F2", border: "1px solid #FECACA", padding: "12px 16px", borderRadius: "2px", margin: "0 0 16px" }}>
@@ -266,7 +320,7 @@ export default function CheckoutPage() {
 
             <button type="submit" disabled={saving || !paymentReady}
               style={{ width: "100%", background: "#B8973A", color: "#FAF8F3", border: "none", fontFamily: "Inter, sans-serif", fontSize: "12px", letterSpacing: "0.12em", textTransform: "uppercase", padding: "18px 32px", cursor: saving || !paymentReady ? "not-allowed" : "pointer", opacity: saving || !paymentReady ? 0.6 : 1 }}>
-              {saving ? "Submitting..." : "Submit order & receipt"}
+              {saving ? (online ? "Redirecting to Paystack..." : "Submitting...") : online ? `Pay ${fmt(total)} with Paystack` : "Submit order & receipt"}
             </button>
           </div>
 
