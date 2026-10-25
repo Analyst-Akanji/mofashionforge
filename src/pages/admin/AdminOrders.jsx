@@ -120,6 +120,7 @@ export default function AdminOrders() {
                 { label: "Phone", value: selected.customer_phone },
                 { label: "Delivery Address", value: selected.delivery_address },
                 { label: "Total", value: fmt((selected.total || 0) / 100) },
+                { label: "Payment Method", value: selected.payment_method === "paystack" ? "Paystack (online)" : "Bank transfer" },
                 { label: "Payment Ref", value: selected.payment_ref || "—" },
                 { label: "Order Notes", value: selected.customer_notes || "—" },
                 { label: "Confirmation email", value: selected.customer_email_sent_at ? "Sent to customer" : "Not sent" },
@@ -135,7 +136,7 @@ export default function AdminOrders() {
                   <p style={{ fontFamily: "Inter, sans-serif", fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", margin: "0 0 2px" }}>Items</p>
                   {selected.items.map((it, i) => (
                     <p key={i} style={{ fontFamily: "Inter, sans-serif", fontSize: "13px", color: "#0F0F0F", margin: "0 0 2px" }}>
-                      {it.qty} × {it.name} — {fmt((it.price || 0) / 100)}
+                      {it.qty} × {it.name}{it.size ? ` (Size ${it.size})` : ""} — {fmt((it.price || 0) / 100)}
                     </p>
                   ))}
                 </div>
@@ -158,6 +159,9 @@ export default function AdminOrders() {
                 <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontFamily: "Inter, sans-serif", fontSize: "13px", border: "1px solid #E5E5E5", borderRadius: "2px", marginBottom: "12px", background: "#fff" }}>
                   {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
+                {["processing", "shipped", "delivered", "cancelled"].includes(newStatus) && newStatus !== selected.status && (
+                  <p style={{ fontFamily: "Inter, sans-serif", fontSize: "12px", color: "#6B6B6B", margin: "-4px 0 12px" }}>Saving will email the customer about this status.</p>
+                )}
 
                 <label style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6B6B", display: "block", marginBottom: "8px" }}>Admin Notes</label>
                 <textarea value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} rows={3} style={{ width: "100%", padding: "10px 12px", fontFamily: "Inter, sans-serif", fontSize: "13px", border: "1px solid #E5E5E5", borderRadius: "2px", resize: "vertical", boxSizing: "border-box", marginBottom: "12px" }} />
