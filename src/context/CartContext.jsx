@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { track } from "../lib/analytics";
+
 const CartContext = createContext(null);
 const STORAGE_KEY = "mff_cart_v1";
 const MAX_QTY = 10;
@@ -31,6 +33,7 @@ export function CartProvider({ children }) {
   const lineIdFor = (product, size) => (size ? `${product.id}::${size}` : product.id);
 
   const addItem = useCallback((product, qty = 1, size = null) => {
+    track("add_to_cart", { product_id: product.id, meta: { size: size || null, qty } });
     const lineId = lineIdFor(product, size);
     setItems((prev) => {
       const existing = prev.find((i) => i.id === lineId);
@@ -56,6 +59,7 @@ export function CartProvider({ children }) {
 
   // "Buy Now": make sure the piece is in the cart (keeps its quantity if already there).
   const buyNow = useCallback((product, size = null) => {
+    track("add_to_cart", { product_id: product.id, meta: { size: size || null, qty: 1, buy_now: true } });
     const lineId = lineIdFor(product, size);
     setItems((prev) =>
       prev.some((i) => i.id === lineId)

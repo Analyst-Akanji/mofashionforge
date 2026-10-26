@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { track } from "../lib/analytics";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useCart } from "../context/CartContext";
@@ -52,6 +53,15 @@ export default function CheckoutPage() {
   const online = PAYSTACK_ENABLED && method === "paystack";
   const paymentReady = online || Boolean(BANK.accountNumber);
 
+  // Funnel: count one "reached checkout" per visit to this page once there is something in the cart
+  const countedCheckout = useRef(false);
+  useEffect(() => {
+    if (items.length > 0 && !countedCheckout.current) {
+      countedCheckout.current = true;
+      track("begin_checkout", { meta: { lines: items.length } });
+    }
+  }, [items.length]);
+
   // If the customer taps Back from Paystack, the page can be restored mid-"redirecting"
   useEffect(() => {
     const onShow = (e) => { if (e.persisted) setSaving(false); };
@@ -94,6 +104,7 @@ export default function CheckoutPage() {
     // saves the order as pending, and returns a Paystack link. We only send ids, sizes and quantities.
     if (online) {
       setSaving(true);
+      track("payment_started", { meta: { method: "paystack" } });
       const { data, error: fnErr } = await supabase.functions.invoke("paystack-init", {
         body: {
           customer: { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), address: form.address.trim() },
@@ -117,6 +128,7 @@ export default function CheckoutPage() {
       setError("Please upload your payment receipt.");
       return;
     }
+    track("payment_started", { meta: { method: "bank_transfer" } });
 
     setSaving(true);
     const orderRef = makeOrderRef();

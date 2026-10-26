@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { supabase } from "../lib/supabase";
+import { track } from "../lib/analytics";
 
 const fmt = (n) => `₦${n.toLocaleString("en-NG")}`;
 const prettyCategory = (c) => (c || "").replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
@@ -101,6 +102,9 @@ function Lightbox({ product, onClose }) {
     buyNow(cartProduct(), needsSize ? size : null);
     navigate("/checkout");
   }
+
+  // Analytics: one "product view" each time a piece is opened
+  useEffect(() => { track("product_view", { product_id: product.id }); }, [product.id]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };

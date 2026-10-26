@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import AnalyticsTracker from "./components/AnalyticsTracker";
 import PublicLayout from "./components/PublicLayout";
 import RequireAdmin from "./components/admin/RequireAdmin";
 import { CartProvider } from "./context/CartContext";
@@ -25,12 +26,14 @@ import AdminGallery from "./pages/admin/AdminGallery";
 import AdminInquiries from "./pages/admin/AdminInquiries";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminBlog from "./pages/admin/AdminBlog";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
 export default function App() {
   return (
     <BrowserRouter>
       <CartProvider>
       <ScrollToTop />
+      <AnalyticsTracker />
       <Routes>
         {/* Public site: Navbar + WhatsApp button stay mounted between pages */}
         <Route element={<PublicLayout />}>
@@ -63,6 +66,7 @@ export default function App() {
           <Route path="/admin/inquiries" element={<AdminInquiries />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
           <Route path="/admin/blog" element={<AdminBlog />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
         </Route>
       </Routes>
       </CartProvider>
