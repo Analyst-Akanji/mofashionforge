@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { supabase } from "../lib/supabase";
 
-const WHATSAPP_URL = "https://wa.me/2348185123890";
+const WHATSAPP_URL = "https://wa.me/2348185128390";
 
 export default function CustomOrdersPage() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", description: "" });

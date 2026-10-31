@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 
-const WHATSAPP_URL = "https://wa.me/2348185123890";
+const WHATSAPP_URL = "https://wa.me/2348185128390";
 const INSTAGRAM_URL = "https://www.instagram.com/mo_fashionforge";
 
 export default function AboutPage() {

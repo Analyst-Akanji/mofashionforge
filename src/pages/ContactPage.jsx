@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import PageHero from "../components/PageHero";
 import { supabase } from "../lib/supabase";
 
-const WHATSAPP_URL = "https://wa.me/2348185123890";
+const WHATSAPP_URL = "https://wa.me/2348185128390";
 const INSTAGRAM_URL = "https://www.instagram.com/mo_fashionforge";
 const EMAIL = "karimotmorayo2019@gmail.com";
 

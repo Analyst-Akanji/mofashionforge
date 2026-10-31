@@ -9,7 +9,7 @@ export const BUSINESS = {
   owner: "Morayo",
   email: "karimotmorayo2019@gmail.com",
   whatsapp: "+234 818 512 8390",
-  whatsappUrl: "https://wa.me/2348185123890",
+  whatsappUrl: "https://wa.me/2348185128390",
   hours: "Mon–Sat, 9am–6pm WAT",
 };
 

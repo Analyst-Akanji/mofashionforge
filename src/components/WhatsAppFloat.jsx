@@ -1,4 +1,4 @@
-const WHATSAPP_URL = "https://wa.me/2348185123890";
+const WHATSAPP_URL = "https://wa.me/2348185128390";
 
 export default function WhatsAppFloat() {
   return (
