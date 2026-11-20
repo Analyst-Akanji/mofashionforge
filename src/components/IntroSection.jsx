@@ -29,7 +29,7 @@ export default function IntroSection() {
             <img
               src="/assets/intro-piece.jpg"
               alt="Mo_FashionForge handcrafted crochet piece"
-              style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", objectPosition: "center", borderRadius: "2px", display: "block" }}
+              style={{ width: "100%", height: "auto", borderRadius: "2px", display: "block" }}
             />
             <p style={{ fontFamily: "Inter, sans-serif", fontSize: "11px", letterSpacing: "0.1em", color: "#B8973A", textTransform: "uppercase", textAlign: "right", margin: "12px 0 0" }}>
               Handcrafted · Made to Order

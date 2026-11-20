@@ -91,6 +91,18 @@ body {
   background-position: center top;
 }
 
+/* ── Intro section image: slimmer, top of the piece always visible ── */
+.intro-image {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.intro-image img {
+  aspect-ratio: 4 / 5;      /* 3 / 4 shows more of the bottom, 5 / 6 trims more of it */
+  object-fit: cover;
+  object-position: center top;  /* keep the top (hanger and collar), trim only the bottom */
+}
+
 /* ── Responsive helpers ── */
 @media (min-width: 769px) {
   .show-mobile { display: none !important; }
@@ -106,12 +118,8 @@ body {
     grid-template-columns: 1fr !important;
     gap: 40px !important;
   }
-  .intro-image { order: -1; }
+  .intro-image { order: -1; max-width: 300px; }
   .intro-text  { order: 1; }
-  .intro-grid img {
-    aspect-ratio: 4/3 !important;
-    max-height: 360px;
-  }
 
   /* ShopSection category grid */
   .shop-grid {
