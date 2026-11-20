@@ -98,7 +98,7 @@ body {
   margin: 0 auto;
 }
 .intro-image img {
-  aspect-ratio: 4 / 5;      /* 3 / 4 shows more of the bottom, 5 / 6 trims more of it */
+  aspect-ratio: 3/ 4;      /* 3 / 4 shows more of the bottom, 5 / 6 trims more of it */
   object-fit: cover;
   object-position: center top;  /* keep the top (hanger and collar), trim only the bottom */
 }
